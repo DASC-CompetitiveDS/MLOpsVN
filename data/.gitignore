@@ -1,8 +1,7 @@
 captured_data/**
 !captured_data/.gitkeep
 
-model_config/**/*.yaml
-!model_config/phase-1/prob-1/example.yaml
+!model_config/**/*.yaml
 
 raw_data/**
 !raw_data/.gitkeep
