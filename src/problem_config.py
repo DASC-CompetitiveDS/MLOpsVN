@@ -29,6 +29,10 @@ class ProblemConfig:
     numerical_cols: list
     categorical_cols: list
     ml_type: str
+    
+    #params tuning
+    params_tuning: dict
+    params_fix: str
 
     # for data captured from API
     captured_data_dir: str
@@ -36,6 +40,9 @@ class ProblemConfig:
     # processed captured data
     captured_x_path: str
     uncertain_y_path: str
+    
+    #model config
+    model_config_path: str
 
 
 def load_feature_configs_dict(config_path: str) -> dict:
@@ -75,7 +82,26 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.categorical_cols = feature_configs.get("category_columns")
     prob_config.numerical_cols = feature_configs.get("numeric_columns")
     prob_config.ml_type = feature_configs.get("ml_type")
+    
+    #create ml models params
+    prob_config.params_tuning = {}
+    
+    prob_config.params_tuning['xgb'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
+                                        'n_estimators': ([1000, 5000], 'int'), 'subsample': ([0.6, 0.9], 'float'),
+                                        'colsample_bytree': ([0.6, 0.9], 'float')}
+    prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
+                                         'subsample': ([0.6, 0.9], 'float'), 'colsample_bytree': ([0.6, 0.9], 'float'), 
+                                         'n_estimators': ([3000, 8000], 'int')}
+    prob_config.params_tuning['catboost'] = {}
+    prob_config.params_tuning['rdf'] = {}
+    
+    params_fix = {}
+    params_fix['xgb'] = {'max_depth': 10, 'num_leaveas': 12, 'n_estimators': 2100, 'subsample': 0.9, 'colsample_bytree': 0.85}
+    params_fix['lgbm'] = {'max_depth': 10, 'num_leaveas': 12, 'subsample': 0.9, 'colsample_bytree': 0.85, 'n_estimators': 5000}
+    params_fix['catboost'] = {}
+    params_fix['rdf'] = {}
 
+    
     # construct data paths for API-captured data
     prob_config.captured_data_dir = (
         AppPath.CAPTURED_DATA_DIR / f"{phase_id}" / f"{prob_id}"
@@ -91,6 +117,10 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.uncertain_y_path = (
         prob_config.processed_captured_data_dir / "uncertain_y.parquet"
     )
+    
+    # model config path
+    prob_config.model_config_path = AppPath.MODEL_CONFIG_DIR / f"{phase_id}" / f"{prob_id}" 
+    prob_config.model_config_path.mkdir(parents=True, exist_ok=True)
 
     return prob_config
 
