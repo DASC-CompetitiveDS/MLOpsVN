@@ -13,3 +13,6 @@ uvicorn==0.22.0
 optuna==3.2.0
 lightgbm==3.3.5
 catboost==1.2
+seaborn==0.12.2
+matplotlib==3.7.1
+plotly==5.15.0
