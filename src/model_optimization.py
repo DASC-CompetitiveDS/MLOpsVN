@@ -7,6 +7,8 @@ from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, 
 import optuna
 from optuna.samplers import TPESampler
 import logging
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def objective(trial, train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight):
@@ -64,7 +66,7 @@ def model_training(train_data, valid_data, type_model, task, params, cat_feature
     X_train, X_valid, y_train, y_valid = train_data[0], valid_data[0], train_data[1], valid_data[1]
     unique_n = len(np.unique(y_train))
     if is_class_weight is True:
-        param['class_weight'] = 'balanced'
+        params['class_weight'] = 'balanced'
     if type_model == 'xgb':
         reg = XGBRegressor(**param, verbose=0) if type_model == 'reg' else \
               XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param, verbose=0)

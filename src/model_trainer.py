@@ -20,6 +20,9 @@ from raw_data_processor import RawDataProcessor
 from model_optimization import get_best_params, model_training
 from utils import AppConfig
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 class ModelTrainer:
     @staticmethod
@@ -111,6 +114,8 @@ if __name__ == "__main__":
     prob_config = get_prob_config(args.phase_id, args.prob_id)
     if args.type_model not in ['xgb', 'lgbm', 'cb', 'rdf']:
         print("The available model type: [xgb, lgbm, cb, rdf]")
+    elif args.task not in ['clf', 'reg']:
+        print("The available task: [clf, reg]")
     else:
         ModelTrainer.train_model(
             prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, add_captured_data=args.add_captured_data
