@@ -44,7 +44,8 @@ class ModelPredictor:
         model_uri = os.path.join(
             "models:/", self.config["model_name"], str(self.config["model_version"])
         )
-        self.model = mlflow.pyfunc.load_model(model_uri)
+        self.input_schema = mlflow.models.Model.load(model_uri).get_input_schema().to_dict()
+        self.model = mlflow.sklearn.load_model(model_uri)
 
     def detect_drift(self, feature_df) -> int:
         # watch drift between coming requests and training data
@@ -65,9 +66,9 @@ class ModelPredictor:
         ModelPredictor.save_request_data(
             feature_df, self.prob_config.captured_data_dir, data.id
         )
-
-        prediction = self.model.predict(feature_df)
-        is_drifted = self.detect_drift(feature_df)
+        get_features = [each['name'] for each in self.input_schema]
+        prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
+        is_drifted = self.detect_drift(feature_df[get_features])
 
         run_time = round((time.time() - start_time) * 1000, 0)
         logging.info(f"prediction takes {run_time} ms")

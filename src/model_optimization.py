@@ -62,18 +62,18 @@ def get_best_params(train_data, valid_data, type_model, task, params_tuning, cat
     params = trial.params
     return params
 
-def model_training(train_data, valid_data, type_model, task, params, cat_features, is_class_weight):
+def model_training(train_data, valid_data, type_model, task, param_grid, cat_features, is_class_weight):
     X_train, X_valid, y_train, y_valid = train_data[0], valid_data[0], train_data[1], valid_data[1]
     unique_n = len(np.unique(y_train))
     if is_class_weight is True:
-        params['class_weight'] = 'balanced'
+        param_grid['class_weight'] = 'balanced'
     if type_model == 'xgb':
-        reg = XGBRegressor(**param, verbose=0) if type_model == 'reg' else \
-              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param, verbose=0)
+        reg = XGBRegressor(**param_grid, verbose=0) if type_model == 'reg' else \
+              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0)
         reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], early_stopping_rounds=300, verbose=0)
     elif type_model == 'lgbm':
-        reg = LGBMRegressor(metric=None, **param, verbose=0) if type_model == 'reg' else \
-              LGBMClassifier(metric=None, **param, verbose=0)
+        reg = LGBMRegressor(metric=None, **param_grid, verbose=0) if type_model == 'reg' else \
+              LGBMClassifier(metric=None, **param_grid, verbose=0)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"
         reg.fit(X_train, y_train, eval_set=(X_valid, y_valid), eval_metric=eval_metric, 
@@ -82,13 +82,11 @@ def model_training(train_data, valid_data, type_model, task, params, cat_feature
         pass
     else:
         pass
-    
-    pred = reg.predict(X_valid)
-    if type_model == 'clf' and unique_n == 2:
-        pred = pred[:, 1]
         
     if type_model == 'reg':
+        pred = reg.predict(X_valid)
         res = mean_squared_error(y_valid, pred, squared=False)
     else:
+        pred = reg.predict_proba(X_valid)[:, 1] if unique_n == 2 else reg.predict_proba(X_valid)
         res = roc_auc_score(y_valid, pred) if unique_n == 2 else roc_auc_score(y_valid, pred, multi_class='ovr')
     return reg, res, pred

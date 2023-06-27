@@ -63,7 +63,7 @@ class ModelTrainer:
             
         
         # train and evaluate
-        model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), type_model, task, params_tuning, category_features, class_weight)
+        model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), type_model, task, model_params, category_features, class_weight)
         key_metrics = "validation_auc" if task == 'clf' else "validation_rmse"
         metrics = {key_metrics: validation_score}
         logging.info(f"metrics: {metrics}")
@@ -76,7 +76,7 @@ class ModelTrainer:
             model_config["model_version"] += 1
         else:
             model_config = {"phase_id": prob_config.phase_id, "prob_id": prob_config.prob_id, "model_name": model_name, "model_version": 1}
-        with open(model_config_path, "r") as file:
+        with open(model_config_path, "w") as file:
             yaml.dump(model_config, file)
             
         # mlflow log
