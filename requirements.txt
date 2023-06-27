@@ -10,3 +10,6 @@ xgboost==1.7.5
 fastapi==0.95.1
 pydantic==1.10.7
 uvicorn==0.22.0
+optuna==3.2.0
+lightgbm==3.3.5
+catboost==1.2

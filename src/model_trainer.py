@@ -9,6 +9,7 @@ import xgboost as xgb
 from mlflow.models.signature import infer_signature
 from sklearn.metrics import roc_auc_score
 import numpy as np
+import pickle
 
 from problem_config import (
     ProblemConfig,
@@ -51,11 +52,11 @@ class ModelTrainer:
         
         #get params
         if time_tuning != 0:
-            params_tuning = prob_config.params_tuning[arg.type_model]
+            params_tuning = prob_config.params_tuning[type_model]
             model_params = get_best_params((train_x, train_y), (test_x, test_y), type_model, task, params_tuning, category_features, 
                                            class_weight, time_tuning, idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}")
         else:
-            model_params = prob_config.params_fix[arg.type_model]
+            model_params = prob_config.params_fix[type_model]
             
         
         # train and evaluate
@@ -67,7 +68,7 @@ class ModelTrainer:
         #model config yaml.file
         model_config_path = f"{prob_config.model_config_path}/{model_name}.yaml"
         if os.path.exists(model_config_path):
-            with open(config_file_path, "r") as f:
+            with open(model_config_path, "r") as f:
                 model_config = yaml.safe_load(f)
             model_config["model_version"] += 1
         else:
@@ -97,21 +98,20 @@ if __name__ == "__main__":
     #Tác vụ thực hiện ['clf', 'reg']
     parser.add_argument("--task", type=str, default='clf')
     #Add thêm tham số loại model sử dụng (xgb, lgbm, cb, rdf)
-    parser.add_argumenr("--type_model", type=str, default='lgbm')
+    parser.add_argument("--type_model", type=str, default='lgbm')
     #Sử dụng class weight True or False
-    parser.add_argumenr("--class_weight", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--class_weight", type=lambda x: (str(x).lower() == "true"), default=False)
     #Thời gian tuning model, nếu = 0 tức là không sử dụng
-    parser.add_argumenr("--time_tuning", type=float, default=0)
+    parser.add_argument("--time_tuning", type=float, default=0)
     parser.add_argument(
         "--add-captured-data", type=lambda x: (str(x).lower() == "true"), default=False
     )
     args = parser.parse_args()
 
     prob_config = get_prob_config(args.phase_id, args.prob_id)
-    if type_model not in [xgb, lgbm, cb, rdf]:
+    if args.type_model not in ['xgb', 'lgbm', 'cb', 'rdf']:
         print("The available model type: [xgb, lgbm, cb, rdf]")
-        return
-
-    ModelTrainer.train_model(
-        prob_config, type_model, time_tuning, task, class_weight, add_captured_data=args.add_captured_data
-    )
+    else:
+        ModelTrainer.train_model(
+            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, add_captured_data=args.add_captured_data
+        )
