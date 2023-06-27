@@ -90,8 +90,10 @@ class ModelPredictor:
 
 
 class PredictorApi:
-    def __init__(self, predictor: ModelPredictor):
-        self.predictor = predictor
+    def __init__(self, predictor1: ModelPredictor, predictor2: ModelPredictor):
+        self.predictor1 = predictor1
+        self.predictor2 = predictor2
+
         self.app = FastAPI()
 
         @self.app.get("/")
@@ -101,9 +103,17 @@ class PredictorApi:
         @self.app.post("/phase-1/prob-1/predict")
         async def predict(data: Data, request: Request):
             self._log_request(request)
-            response = self.predictor.predict(data)
+            response = self.predictor1.predict(data)
             self._log_response(response)
             return response
+        
+        @self.app.post("/phase-1/prob-2/predict")
+        async def predict(data: Data, request: Request):
+            self._log_request(request)
+            response = self.predictor2.predict(data)
+            self._log_response(response)
+            return response
+
 
     @staticmethod
     def _log_request(request: Request):
@@ -126,10 +136,14 @@ if __name__ == "__main__":
     ).as_posix()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config-path", type=str, default=default_config_path)
+    parser.add_argument("--config-path1", type=str, default=default_config_path)
+    parser.add_argument("--config-path2", type=str, default=default_config_path)
+
     parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
     args = parser.parse_args()
 
-    predictor = ModelPredictor(config_file_path=args.config_path)
-    api = PredictorApi(predictor)
+    predictor1 = ModelPredictor(config_file_path=args.config_path1)
+    predictor2 = ModelPredictor(config_file_path=args.config_path2)
+
+    api = PredictorApi(predictor1, predictor2)
     api.run(port=args.port)
