@@ -64,7 +64,8 @@ class ModelTrainer:
             
         
         # train and evaluate
-        model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), type_model, task, model_params, category_features, class_weight)
+        model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), 
+                                                              type_model, task, model_params, category_features, class_weight)
         key_metrics = "validation_auc" if task == 'clf' else "validation_rmse"
         metrics = {key_metrics: validation_score}
         logging.info(f"metrics: {metrics}")
