@@ -99,17 +99,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--phase-id", type=str, default=ProblemConst.PHASE1)
     parser.add_argument("--prob-id", type=str, default=ProblemConst.PROB1)
-    #Tác vụ thực hiện ['clf', 'reg']
-    parser.add_argument("--task", type=str, default='clf')
-    #Add thêm tham số loại model sử dụng (xgb, lgbm, cb, rdf)
-    parser.add_argument("--type_model", type=str, default='lgbm')
-    #Sử dụng class weight True or False
-    parser.add_argument("--class_weight", type=lambda x: (str(x).lower() == "true"), default=False)
-    #Thời gian tuning model, nếu = 0 tức là không sử dụng
-    parser.add_argument("--time_tuning", type=float, default=0)
-    parser.add_argument(
-        "--add-captured-data", type=lambda x: (str(x).lower() == "true"), default=False
-    )
+
+    parser.add_argument("--task", type=str, default='clf', 
+                        help="Tác vụ thực hiện ['clf', 'reg']")
+    parser.add_argument("--type_model", type=str, default='lgbm', 
+                        help='loại model sử dụng (xgb, lgbm, cb, rdf)')
+    parser.add_argument("--class_weight", type=lambda x: (str(x).lower() == "true"), default=False, 
+                        help='Sử dụng class weight')
+    parser.add_argument("--time_tuning", type=float, default=0, 
+                        help='Thời gian tuning model, nếu = 0 tức là không sử dụng')
+    parser.add_argument("--add-captured-data", type=lambda x: (str(x).lower() == "true"), default=False)
     args = parser.parse_args()
 
     prob_config = get_prob_config(args.phase_id, args.prob_id)
