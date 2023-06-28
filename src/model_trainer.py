@@ -23,6 +23,7 @@ from utils import AppConfig
 import warnings
 warnings.filterwarnings("ignore")
 
+mlflow.autolog()
 
 class ModelTrainer:
     @staticmethod

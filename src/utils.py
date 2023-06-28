@@ -25,5 +25,5 @@ AppPath.CAPTURED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class AppConfig:
-    MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
+    MLFLOW_TRACKING_URI = 'http://localhost:5000'
     MLFLOW_MODEL_PREFIX = "model"
