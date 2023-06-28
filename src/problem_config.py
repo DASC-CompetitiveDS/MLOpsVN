@@ -95,11 +95,11 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.params_tuning['catboost'] = {}
     prob_config.params_tuning['rdf'] = {}
     
-    params_fix = {}
-    params_fix['xgb'] = {'max_depth': 10, 'num_leaveas': 12, 'n_estimators': 2100, 'subsample': 0.9, 'colsample_bytree': 0.85}
-    params_fix['lgbm'] = {'max_depth': 10, 'num_leaveas': 12, 'subsample': 0.9, 'colsample_bytree': 0.85, 'n_estimators': 5000}
-    params_fix['catboost'] = {}
-    params_fix['rdf'] = {}
+    prob_config.params_fix = {}
+    prob_config.params_fix['xgb'] = {'max_depth': 10, 'num_leaveas': 12, 'n_estimators': 2100, 'subsample': 0.9, 'colsample_bytree': 0.85}
+    prob_config.params_fix['lgbm'] = {'max_depth': 10, 'num_leaveas': 12, 'subsample': 0.9, 'colsample_bytree': 0.85, 'n_estimators': 5000}
+    prob_config.params_fix['catboost'] = {}
+    prob_config.params_fix['rdf'] = {}
 
     
     # construct data paths for API-captured data
