@@ -57,6 +57,7 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.phase_id = phase_id
     prob_config.test_size = 0.2
     prob_config.random_state = 123
+    prob_config.n_folds = 5
 
     # construct data paths for original data
     prob_config.raw_data_path = (

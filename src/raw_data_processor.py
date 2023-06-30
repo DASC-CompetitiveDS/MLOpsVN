@@ -6,7 +6,18 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from problem_config import ProblemConfig, ProblemConst, get_prob_config
+from sklearn.model_selection import StratifiedKFold
 
+class TargetEncoder:
+    def __init__(self) -> None:
+        self._values = {}
+    def fit(self, data, categorical_col, target):
+        self._values = data[[categorical_col, target]].groupby(categorical_col)[target].mean().to_dict()
+    def transform(self, series):
+        return series.map(self._values)
+    def fit_transform(self, data, categorical_col, target):
+        self.fit(data, categorical_col, target)
+        return self.transform(data[categorical_col])
 
 class RawDataProcessor:
     @staticmethod
@@ -42,7 +53,44 @@ class RawDataProcessor:
                 categories=category_index[col],
             ).codes
         return apply_df
+    
+    @staticmethod
+    def process_default(training_data):
+        training_data, category_index = RawDataProcessor.build_category_features(
+            training_data, prob_config.categorical_cols
+        )
+        train, dev = train_test_split(
+            training_data,
+            test_size=prob_config.test_size,
+            random_state=prob_config.random_state,
+        )
 
+        with open(prob_config.category_index_path, "wb") as f:
+            pickle.dump(category_index, f)
+        target_col = prob_config.target_col 
+        train_x = train.drop([target_col], axis=1)
+        train_y = train[[target_col]]
+        test_x = dev.drop([target_col], axis=1)
+        test_y = dev[[target_col]]
+
+        train_x.to_parquet(prob_config.train_x_path, index=False)
+        train_y.to_parquet(prob_config.train_y_path, index=False)
+        test_x.to_parquet(prob_config.test_x_path, index=False)
+        test_y.to_parquet(prob_config.test_y_path, index=False)
+    
+    @staticmethod  
+    def stratified_kfold(training_data, prob_config: ProblemConfig):
+        X = training_data
+        y = training_data[prob_config.target_col]
+        skf = StratifiedKFold(n_splits=prob_config.n_folds)
+        list_subsets = []
+        
+        for i, (train_index, test_index) in enumerate(skf.split(X, y)):
+            train, dev = X.iloc[train_index], X.iloc[test_index]
+            list_subsets.append([train, dev])
+            
+        return list_subsets
+    
     @staticmethod
     def process_raw_data(prob_config: ProblemConfig, default=True):
         logging.info("start process_raw_data")
@@ -59,19 +107,20 @@ class RawDataProcessor:
 
             with open(prob_config.category_index_path, "wb") as f:
                 pickle.dump(category_index, f)
+            target_col = prob_config.target_col 
+            train_x = train.drop([target_col], axis=1)
+            train_y = train[[target_col]]
+            test_x = dev.drop([target_col], axis=1)
+            test_y = dev[[target_col]]
+
+            train_x.to_parquet(prob_config.train_x_path, index=False)
+            train_y.to_parquet(prob_config.train_y_path, index=False)
+            test_x.to_parquet(prob_config.test_x_path, index=False)
+            test_y.to_parquet(prob_config.test_y_path, index=False)
+            
         else:
             pass
         
-        target_col = prob_config.target_col
-        train_x = train.drop([target_col], axis=1)
-        train_y = train[[target_col]]
-        test_x = dev.drop([target_col], axis=1)
-        test_y = dev[[target_col]]
-
-        train_x.to_parquet(prob_config.train_x_path, index=False)
-        train_y.to_parquet(prob_config.train_y_path, index=False)
-        test_x.to_parquet(prob_config.test_x_path, index=False)
-        test_y.to_parquet(prob_config.test_y_path, index=False)
         logging.info("finish process_raw_data")
 
     @staticmethod
