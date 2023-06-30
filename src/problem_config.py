@@ -91,7 +91,7 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
                                         'colsample_bytree': ([0.6, 0.9], 'float')}
     prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
                                          'subsample': ([0.6, 0.9], 'float'), 'colsample_bytree': ([0.6, 0.9], 'float'), 
-                                         'n_estimators': ([3000, 8000], 'int')}
+                                         'n_estimators': ([10000], 'int')}
     prob_config.params_tuning['catboost'] = {}
     prob_config.params_tuning['rdf'] = {}
     

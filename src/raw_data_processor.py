@@ -44,21 +44,24 @@ class RawDataProcessor:
         return apply_df
 
     @staticmethod
-    def process_raw_data(prob_config: ProblemConfig):
+    def process_raw_data(prob_config: ProblemConfig, default=True):
         logging.info("start process_raw_data")
         training_data = pd.read_parquet(prob_config.raw_data_path)
-        training_data, category_index = RawDataProcessor.build_category_features(
-            training_data, prob_config.categorical_cols
-        )
-        train, dev = train_test_split(
-            training_data,
-            test_size=prob_config.test_size,
-            random_state=prob_config.random_state,
-        )
+        if default:
+            training_data, category_index = RawDataProcessor.build_category_features(
+                training_data, prob_config.categorical_cols
+            )
+            train, dev = train_test_split(
+                training_data,
+                test_size=prob_config.test_size,
+                random_state=prob_config.random_state,
+            )
 
-        with open(prob_config.category_index_path, "wb") as f:
-            pickle.dump(category_index, f)
-
+            with open(prob_config.category_index_path, "wb") as f:
+                pickle.dump(category_index, f)
+        else:
+            pass
+        
         target_col = prob_config.target_col
         train_x = train.drop([target_col], axis=1)
         train_y = train[[target_col]]
