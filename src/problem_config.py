@@ -57,6 +57,7 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.phase_id = phase_id
     prob_config.test_size = 0.2
     prob_config.random_state = 123
+    prob_config.n_folds = 5
 
     # construct data paths for original data
     prob_config.raw_data_path = (
@@ -92,6 +93,7 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
                                          'subsample': ([0.6, 0.9], 'float'), 'colsample_bytree': ([0.6, 0.9], 'float'), 
                                          'n_estimators': ([3000, 8000], 'int')}
+                                         
     prob_config.params_tuning['catboost'] = {}
     prob_config.params_tuning['rdf'] = {}
     
