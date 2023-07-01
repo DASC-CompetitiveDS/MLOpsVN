@@ -5,11 +5,10 @@ import os
 import yaml
 import mlflow
 import numpy as np
-import xgboost as xgb
 from mlflow.models.signature import infer_signature
-from sklearn.metrics import roc_auc_score
 import numpy as np
 import pickle
+import pandas as pd
 
 from problem_config import (
     ProblemConfig,
@@ -30,7 +29,7 @@ class ModelTrainer:
     def train_model(prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, add_captured_data=False):
         logging.info("start train_model")
         # init mlflow
-        model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}"
+        model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}_{'' if add_captured_data is False else 'add_captured_data'}"
         mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         mlflow.set_experiment(model_name)
 
@@ -42,10 +41,8 @@ class ModelTrainer:
 
         if add_captured_data:
             captured_x, captured_y = RawDataProcessor.load_capture_data(prob_config)
-            captured_x = captured_x.to_numpy()
-            captured_y = captured_y.to_numpy()
-            train_x = np.concatenate((train_x, captured_x))
-            train_y = np.concatenate((train_y, captured_y))
+            train_x = pd.concat([train_x, captured_x])
+            train_y = pd.concat([train_y, captured_y])
             logging.info(f"added {len(captured_x)} captured samples")
         
         with open(prob_config.category_index_path, "rb") as file:
