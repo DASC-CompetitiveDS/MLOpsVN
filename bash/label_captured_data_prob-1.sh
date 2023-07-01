@@ -1,0 +1,1 @@
+python3 src/label_captured_data.py --phase-id phase-1 --prob-id prob-1 --ratio_cluster 20

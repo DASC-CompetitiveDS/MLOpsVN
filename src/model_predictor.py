@@ -129,7 +129,7 @@ class PredictorApi:
         pass
 
     def run(self, port):
-        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, loop='uvloop', workers = 4)
+        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, loop='uvloop', workers = 7)
 
 default_config_path = (
         AppPath.MODEL_CONFIG_DIR
