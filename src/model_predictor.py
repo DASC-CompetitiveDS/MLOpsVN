@@ -49,7 +49,7 @@ class ModelPredictor:
 
     def detect_drift(self, feature_df) -> int:
         # watch drift between coming requests and training data
-        time.sleep(0.02)
+        # time.sleep(0.02)
         return random.choice([0, 1])
 
     def predict(self, data: Data):
@@ -63,15 +63,15 @@ class ModelPredictor:
             category_index=self.category_index,
         )
         # save request data for improving models
-        ModelPredictor.save_request_data(
-            feature_df, self.prob_config.captured_data_dir, data.id
-        )
+        # ModelPredictor.save_request_data(
+        #     feature_df, self.prob_config.captured_data_dir, data.id
+        # )
         get_features = [each['name'] for each in self.input_schema]
         prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
         is_drifted = self.detect_drift(feature_df[get_features])
 
         run_time = round((time.time() - start_time) * 1000, 0)
-        logging.info(f"prediction takes {run_time} ms")
+        # logging.info(f"prediction takes {run_time} ms")
         return {
             "id": data.id,
             "predictions": prediction.tolist(),
