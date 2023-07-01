@@ -16,6 +16,10 @@ from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
 from utils import AppConfig, AppPath
 
+import uvloop
+import asyncio
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
 PREDICTOR_API_PORT = 8000
 
 
@@ -68,6 +72,7 @@ class ModelPredictor:
         )
         get_features = [each['name'] for each in self.input_schema]
         prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
+        # logging.info(prediction)
         is_drifted = self.detect_drift(feature_df[get_features])
 
         run_time = round((time.time() - start_time) * 1000, 0)
@@ -124,26 +129,26 @@ class PredictorApi:
         pass
 
     def run(self, port):
-        uvicorn.run(self.app, host="0.0.0.0", port=port)
+        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, loop='uvloop', workers = 4)
 
-
-if __name__ == "__main__":
-    default_config_path = (
+default_config_path = (
         AppPath.MODEL_CONFIG_DIR
         / ProblemConst.PHASE1
         / ProblemConst.PROB1
         / "model-1.yaml"
     ).as_posix()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config-path1", type=str, default=default_config_path)
-    parser.add_argument("--config-path2", type=str, default=default_config_path)
+parser = argparse.ArgumentParser()
+parser.add_argument("--config-path1", type=str, default=default_config_path)
+parser.add_argument("--config-path2", type=str, default=default_config_path)
 
-    parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
-    args = parser.parse_args()
+parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
+args = parser.parse_args()
 
-    predictor1 = ModelPredictor(config_file_path=args.config_path1)
-    predictor2 = ModelPredictor(config_file_path=args.config_path2)
+predictor1 = ModelPredictor(config_file_path=args.config_path1)
+predictor2 = ModelPredictor(config_file_path=args.config_path2)
 
-    api = PredictorApi(predictor1, predictor2)
+api = PredictorApi(predictor1, predictor2)
+
+if __name__ == "__main__":
     api.run(port=args.port)

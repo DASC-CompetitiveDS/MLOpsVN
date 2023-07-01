@@ -79,10 +79,11 @@ def model_training(train_data, valid_data, type_model, task, param_grid, cat_fea
         reg.fit(X_train, y_train, eval_set=(X_valid, y_valid), eval_metric=eval_metric, 
                 categorical_feature=cat_features, early_stopping_rounds=300, verbose=0)        
     elif type_model == 'catboost':
-        pass
+        reg = None
     else:
-        pass
-        
+        reg = RandomForestRegressor(**param_grid, verbose=0) if type_model == 'reg' else \
+              RandomForestClassifier(**param_grid, verbose=0)
+        reg.fit(X_train, y_train)
     if type_model == 'reg':
         pred = reg.predict(X_valid)
         res = mean_squared_error(y_valid, pred, squared=False)
