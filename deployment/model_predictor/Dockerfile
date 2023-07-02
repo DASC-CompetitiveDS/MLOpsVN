@@ -11,4 +11,5 @@ RUN pip install --upgrade wheel setuptools pip
 RUN pip install -r requirements.txt
 
 COPY ./src /sample_solution/src
+COPY ./utils /sample_solution/utils
 WORKDIR /sample_solution
