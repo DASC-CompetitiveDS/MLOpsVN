@@ -53,10 +53,10 @@ class ModelPredictor:
 
     def detect_drift(self, feature_df) -> int:
         # watch drift between coming requests and training data
-        time.sleep(0.02)
+        # time.sleep(0.02)
         return random.choice([0, 1])
 
-    def predict(self, data: Data):
+    def predict(self, data: Data, type_: int):
         start_time = time.time()
 
         # preprocess
@@ -71,7 +71,10 @@ class ModelPredictor:
             feature_df, self.prob_config.captured_data_dir, data.id
         )
         get_features = [each['name'] for each in self.input_schema]
-        prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
+        if type_ == 0:
+            prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
+        else:
+            prediction = self.model.predict(feature_df[get_features])
         # logging.info(prediction)
         is_drifted = self.detect_drift(feature_df[get_features])
 
@@ -105,17 +108,17 @@ class PredictorApi:
         async def root():
             return {"message": "hello"}
 
-        @self.app.post("/phase-1/prob-1/predict")
+        @self.app.post("/phase-2/prob-1/predict")
         async def predict(data: Data, request: Request):
             self._log_request(request)
-            response = self.predictor1.predict(data)
+            response = self.predictor1.predict(data, 0)
             self._log_response(response)
             return response
         
-        @self.app.post("/phase-1/prob-2/predict")
+        @self.app.post("/phase-2/prob-2/predict")
         async def predict(data: Data, request: Request):
             self._log_request(request)
-            response = self.predictor2.predict(data)
+            response = self.predictor2.predict(data, 1)
             self._log_response(response)
             return response
 
@@ -129,7 +132,7 @@ class PredictorApi:
         pass
 
     def run(self, port):
-        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, loop='uvloop', workers = 4)
+        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, loop = "uvloop", workers = 6)
 
 default_config_path = (
         AppPath.MODEL_CONFIG_DIR
