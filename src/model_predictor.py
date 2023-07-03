@@ -105,18 +105,18 @@ class PredictorApi:
         self.app = FastAPI()
 
         @self.app.get("/")
-        async def root():
+        def root():
             return {"message": "hello"}
 
         @self.app.post("/phase-2/prob-1/predict")
-        async def predict(data: Data, request: Request):
+        def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictor1.predict(data, 0)
             self._log_response(response)
             return response
         
         @self.app.post("/phase-2/prob-2/predict")
-        async def predict(data: Data, request: Request):
+        def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictor2.predict(data, 1)
             self._log_response(response)
