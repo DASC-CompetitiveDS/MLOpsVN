@@ -52,7 +52,6 @@ class ModelPredictor:
         self.model = mlflow.sklearn.load_model(model_uri)
 
     def detect_drift(self, feature_df) -> int:
-        # watch drift between coming requests and training data
         # time.sleep(0.02)
         return random.choice([0, 1])
 
@@ -132,7 +131,7 @@ class PredictorApi:
         pass
 
     def run(self, port):
-        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, loop = "uvloop", workers = 6)
+        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers = 6)
 
 default_config_path = (
         AppPath.MODEL_CONFIG_DIR
