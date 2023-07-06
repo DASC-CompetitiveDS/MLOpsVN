@@ -53,7 +53,8 @@ class ModelPredictor:
 
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
-        return random.choice([0, 1])
+        # return random.choice([0, 1])
+        return 0
 
     def predict(self, data: Data, type_: int):
         start_time = time.time()
