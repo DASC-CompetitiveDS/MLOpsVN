@@ -1,1 +1,1 @@
-python3 src/raw_data_processor.py --phase-id phase-1 --prob-id prob-1
+python3 src/raw_data_processor.py --phase-id phase-2 --prob-id prob-1

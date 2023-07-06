@@ -57,7 +57,6 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.phase_id = phase_id
     prob_config.test_size = 0.2
     prob_config.random_state = 123
-    prob_config.n_folds = 5
 
     # construct data paths for original data
     prob_config.raw_data_path = (
@@ -92,14 +91,14 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
                                         'colsample_bytree': ([0.6, 0.9], 'float')}
     prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
                                          'subsample': ([0.6, 0.9], 'float'), 'colsample_bytree': ([0.6, 0.9], 'float'), 
-                                         'n_estimators': ([10000], 'int')}
+                                         'n_estimators': ([3000, 8000], 'int')}
     prob_config.params_tuning['catboost'] = {}
     prob_config.params_tuning['rdf'] = {}
     
     prob_config.params_fix = {}
     prob_config.params_fix['xgb'] = {'max_depth': 10, 'num_leaveas': 12, 'n_estimators': 2100, 'subsample': 0.9, 'colsample_bytree': 0.85}
     prob_config.params_fix['lgbm'] = {'max_depth': 10, 'num_leaveas': 12, 'subsample': 0.9, 'colsample_bytree': 0.85, 'n_estimators': 5000}
-    prob_config.params_fix['catboost'] = {}
+    prob_config.params_fix['catboost'] = {'max_depth': 12, 'n_estimators': 500}
     prob_config.params_fix['rdf'] = {}
 
     

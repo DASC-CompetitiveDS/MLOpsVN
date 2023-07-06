@@ -44,7 +44,7 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
         res = mean_squared_error(y_valid, reg.predict(X_valid), squared=False)
     else:
         res = roc_auc_score(y_valid, reg.predict_proba(X_valid)[:, 1]) if unique_n == 2 else \
-              roc_auc_score(y_valid, reg.predict_proba(X_valid), multi_class='ovr')
+              f1_score(y_valid, reg.predict(X_valid), average='macro')
     return res
 
 
@@ -79,14 +79,15 @@ def model_training(train_data, valid_data, type_model, task, param_grid, cat_fea
         reg.fit(X_train, y_train, eval_set=(X_valid, y_valid), eval_metric=eval_metric, 
                 categorical_feature=cat_features, early_stopping_rounds=300, verbose=0)        
     elif type_model == 'catboost':
-        pass
+        reg = None
     else:
-        pass
-        
+        reg = RandomForestRegressor(**param_grid, verbose=0) if type_model == 'reg' else \
+              RandomForestClassifier(**param_grid, verbose=0)
+        reg.fit(X_train, y_train)
     if type_model == 'reg':
         pred = reg.predict(X_valid)
         res = mean_squared_error(y_valid, pred, squared=False)
     else:
-        pred = reg.predict_proba(X_valid)[:, 1] if unique_n == 2 else reg.predict_proba(X_valid)
-        res = roc_auc_score(y_valid, pred) if unique_n == 2 else roc_auc_score(y_valid, pred, multi_class='ovr')
+        pred = reg.predict_proba(X_valid)[:, 1] if unique_n == 2 else reg.predict(X_valid)
+        res = roc_auc_score(y_valid, pred) if unique_n == 2 else f1_score(y_valid, pred, average='macro')
     return reg, res, pred
