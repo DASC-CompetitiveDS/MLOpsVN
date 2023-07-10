@@ -35,8 +35,6 @@ class ModelTrainer:
 
         # load train data
         train_x, train_y = RawDataProcessor.load_train_data(prob_config)
-        # train_x = train_x.to_numpy()
-        # train_y = train_y.to_numpy()
         logging.info(f"loaded {len(train_x)} samples")
 
         if add_captured_data:
@@ -63,21 +61,12 @@ class ModelTrainer:
         # train and evaluate
         model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), 
                                                               type_model, task, model_params, category_features, class_weight)
-        key_metrics = "validation_auc" if task == 'clf' else "validation_rmse"
+        key_metrics = "validation_score"
         metrics = {key_metrics: validation_score}
         logging.info(f"metrics: {metrics}")
         
         #model config yaml.file
-        model_config_path = f"{prob_config.model_config_path}/{model_name}.yaml"
-        if os.path.exists(model_config_path):
-            with open(model_config_path, "r") as f:
-                model_config = yaml.safe_load(f)
-            model_config["model_version"] += 1
-        else:
-            model_config = {"phase_id": prob_config.phase_id, "prob_id": prob_config.prob_id, "model_name": model_name, "model_version": 1}
-        with open(model_config_path, "w") as file:
-            yaml.dump(model_config, file)
-            
+        # mlflow log
         mlflow.log_params(model.get_params())
         mlflow.log_metrics(metrics)
         if args.log_confusion_matrix:
@@ -96,6 +85,13 @@ class ModelTrainer:
             registered_model_name=model_name
         )
         mlflow.end_run()
+        model_config_path = f"{prob_config.model_config_path}/{model_name}.yaml"
+        model_config = {"phase_id": prob_config.phase_id, "prob_id": prob_config.prob_id, "model_name": model_name}
+        client = mlflow.MlflowClient(tracking_uri=AppConfig.MLFLOW_TRACKING_URI)
+        latest_vestion = int(client.get_latest_versions(model_name, stages=["None"])[0].version)
+        model_config["model_version"] = latest_vestion
+        with open(model_config_path, "w") as file:
+            yaml.dump(model_config, file)
         logging.info(f"model name: {model_name}")
         logging.info("finish train_model")
 

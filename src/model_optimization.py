@@ -3,7 +3,7 @@ from catboost import CatBoostRegressor, CatBoostClassifier
 from lightgbm import LGBMRegressor, LGBMClassifier
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from xgboost import XGBClassifier, XGBRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, f1_score, roc_auc_score
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, f1_score, roc_auc_score, accuracy_score
 import optuna
 from optuna.samplers import TPESampler
 import logging
@@ -21,6 +21,9 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
             param_grid[key] = trial.suggest_float(key, value[0][0], value[0][1])
         elif value[1] == 'int':
             param_grid[key] = trial.suggest_int(key, value[0][0], value[0][1])
+        elif value[1] == 'fix':
+            param_grid[key] = value[0]
+
     # logging.info(param_grid)
     if is_class_weight is True:
         param_grid['class_weight'] = 'balanced'
@@ -47,7 +50,7 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
     else:
         key_metrics = 'roc_auc_score' if unique_n == 2 else 'f1_score'
         res = roc_auc_score(y_valid, reg.predict_proba(X_valid)[:, 1]) if unique_n == 2 else \
-              f1_score(y_valid, reg.predict(X_valid), average='macro')
+              accuracy_score(y_valid, reg.predict(X_valid))
     with mlflow.start_run():
         mlflow.log_params(reg.get_params())
         mlflow.log_metrics({key_metrics: res})  
@@ -81,8 +84,8 @@ def model_training(train_data, valid_data, type_model, task, param_grid, cat_fea
               XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0, n_estimators=10000)
         reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=0, early_stopping_rounds=300)
     elif type_model == 'lgbm':
-        reg = LGBMRegressor(metric=None, **param_grid, verbose=0, n_estimators=10000) if type_model == 'reg' else \
-              LGBMClassifier(metric=None, **param_grid, verbose=0, n_estimators=10000)
+        reg = LGBMRegressor(metric=None, **param_grid, n_estimators=10000, verbose=0) if type_model == 'reg' else \
+              LGBMClassifier(metric=None, **param_grid, n_estimators=10000, verbose=0)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"
         reg.fit(X_train, y_train, eval_set=(X_valid, y_valid), eval_metric=eval_metric, 
@@ -98,5 +101,5 @@ def model_training(train_data, valid_data, type_model, task, param_grid, cat_fea
         res = mean_squared_error(y_valid, pred, squared=False)
     else:
         pred = reg.predict_proba(X_valid)[:, 1] if unique_n == 2 else reg.predict(X_valid)
-        res = roc_auc_score(y_valid, pred) if unique_n == 2 else f1_score(y_valid, pred, average='macro')
+        res = roc_auc_score(y_valid, pred) if unique_n == 2 else accuracy_score(y_valid, pred)
     return reg, res, pred
