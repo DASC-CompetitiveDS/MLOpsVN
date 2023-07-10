@@ -86,18 +86,18 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     #create ml models params
     prob_config.params_tuning = {}
     
-    prob_config.params_tuning['xgb'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
-                                        'n_estimators': ([1000, 5000], 'int'), 'subsample': ([0.6, 0.9], 'float'),
+    prob_config.params_tuning['xgb'] = {'max_depth': ([8, 15], 'int'), 'num_leaves': ([10, 40], 'int'),
+                                        'n_estimators': (10000, 'fix'), 'subsample': ([0.6, 0.9], 'float'),
                                         'colsample_bytree': ([0.6, 0.9], 'float')}
-    prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
+    prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaves': ([10, 40], 'int'),
                                          'subsample': ([0.6, 0.9], 'float'), 'colsample_bytree': ([0.6, 0.9], 'float'), 
-                                         'n_estimators': ([3000, 8000], 'int')}
+                                         'n_estimators': (10000, 'fix')}
     prob_config.params_tuning['catboost'] = {}
     prob_config.params_tuning['rdf'] = {}
     
     prob_config.params_fix = {}
-    prob_config.params_fix['xgb'] = {'max_depth': 10, 'num_leaveas': 12, 'n_estimators': 2100, 'subsample': 0.9, 'colsample_bytree': 0.85}
-    prob_config.params_fix['lgbm'] = {'max_depth': 10, 'num_leaveas': 12, 'subsample': 0.9, 'colsample_bytree': 0.85, 'n_estimators': 5000}
+    prob_config.params_fix['xgb'] = {'max_depth': 10, 'num_leaves': 12, 'n_estimators': 10000, 'subsample': 0.9, 'colsample_bytree': 0.85}
+    prob_config.params_fix['lgbm'] = {'max_depth': 15, 'num_leaves': 24, 'subsample': 0.741377736830994, 'colsample_bytree': 0.7117540089599735, 'n_estimators': 10000}
     prob_config.params_fix['catboost'] = {'max_depth': 12, 'n_estimators': 500}
     prob_config.params_fix['rdf'] = {}
 
