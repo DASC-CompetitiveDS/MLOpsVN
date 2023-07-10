@@ -3,6 +3,7 @@ import logging
 import pickle
 
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 
 from problem_config import ProblemConfig, ProblemConst, get_prob_config
@@ -55,23 +56,80 @@ class RawDataProcessor:
         return apply_df
     
     @staticmethod
-    def process_default(training_data):
+    def change_dup_records(X_train, target_col):
+        feature_group = X_train.columns.tolist()
+        dup_ = X_train.groupby(feature_group)[target_col].size().unstack(fill_value=0).reset_index()
+        res = ["Denial of Service", "Exploits", "Information Gathering", "Malware", "Normal", "Other"]
+        def get_label(doc, ex, ig, ml, norm, other):
+            arr_ = [doc, ex, ig, ml, norm, other]
+            idx_res = np.argmax(arr_)
+            return res[idx_res]
+
+        dup_["label_final"] = dup_.apply(lambda x: get_label(x["Denial of Service"], x["Exploits"], x["Information Gathering"], x["Malware"], x["Normal"], x["Other"]), axis=1)
+        dup_ = dup_.drop(columns=res)
+        feature_join = feature_group.copy()
+        feature_join.remove("label")
+        X_train_final = X_train.merge(dup_, how = "inner", on=feature_join)
+        # X_train_final = X_train_final[X_train_final["label"] == X_train_final["label_final"]].reset_index(drop=True)
+        X_train_final = X_train_final.drop(columns=["label"])
+        X_train_final = X_train_final.rename(columns = {"label_final": "label"})
+        return X_train_final
+    
+    @staticmethod
+    def remove_dup_absolutely_records(X_train, target_col, type_remove):
+        feature_group = X_train.columns.tolist()
+        dup_ = X_train.groupby(feature_group).agg(count_per_label=(target_col, "count")).reset_index()
+        feature_group.remove(target_col)
+        count_record = X_train.groupby(feature_group).agg(count_distinct_label=(target_col, "nunique")).reset_index()
+        dup_['order'] = dup_.sort_values(['count_per_label', target_col], ascending=[False, False]).groupby(feature_group).cumcount()
+        dup_['count_per_label_lag'] = dup_.sort_values(['order']).groupby(feature_group)['count_per_label'].shift(-1)
+        dup_ = dup_.merge(count_record, how='inner', on=feature_group)
+        if type_remove == 0:
+            dup_ = dup_[(dup_["order"] == 0) & (dup_["count_distinct_label"] == 1)]
+        else:
+            dup_ = dup_[(dup_["order"] == 0) & ((dup_["count_distinct_label"] == 1) | ((dup_["count_per_label"]) != (dup_["count_per_label_lag"])))]
+        dup_ = dup_.drop(columns = ["count_per_label", "order", "count_per_label_lag", "count_distinct_label"])
+        return dup_
+    
+    @staticmethod
+    def remove_dup_relatively_records(X_train, target_col):
+        feature_group = X_train.columns.tolist()
+        feature_group.remove(target_col)
+        dup_ = X_train.groupby(feature_group).agg(nunique_label=(target_col, "nunique")).reset_index()
+        X_train_final = X_train.merge(dup_, how = "inner", on=feature_group)
+        X_train_final = X_train_final[X_train_final["nunique_label"] == 1].reset_index(drop=True)
+        X_train_final = X_train_final.drop(columns=["nunique_label"])
+        return X_train_final
+    
+    @staticmethod
+    def process_raw_data(prob_config: ProblemConfig, remove_dup: str):
+        logging.info("start process_raw_data")
+        training_data = pd.read_parquet(prob_config.raw_data_path)
         training_data, category_index = RawDataProcessor.build_category_features(
             training_data, prob_config.categorical_cols
         )
-        train, dev = train_test_split(
-            training_data,
+        target_col = prob_config.target_col  
+        
+        if remove_dup == 'rel':
+            training_data = RawDataProcessor.remove_dup_relatively_records(training_data.copy(), target_col)
+        elif "abs" in remove_dup:
+            type_remove = int(remove_dup.split('_')[1])
+            training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, type_remove)
+
+        train_x, test_x, train_y, test_y = train_test_split(
+            training_data.drop(columns=[target_col]),
+            training_data[target_col],
             test_size=prob_config.test_size,
             random_state=prob_config.random_state,
+            stratify=training_data[target_col]
         )
+        train_x = train_x.reset_index(drop=True)
+        test_x = test_x.reset_index(drop=True)
+        train_y = train_y.reset_index(drop=False).drop(columns=['index'])
+        test_y = test_y.reset_index(drop=False).drop(columns=['index'])
 
         with open(prob_config.category_index_path, "wb") as f:
             pickle.dump(category_index, f)
-        target_col = prob_config.target_col 
-        train_x = train.drop([target_col], axis=1)
-        train_y = train[[target_col]]
-        test_x = dev.drop([target_col], axis=1)
-        test_y = dev[[target_col]]
 
         train_x.to_parquet(prob_config.train_x_path, index=False)
         train_y.to_parquet(prob_config.train_y_path, index=False)
@@ -157,7 +215,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--phase-id", type=str, default=ProblemConst.PHASE1)
     parser.add_argument("--prob-id", type=str, default=ProblemConst.PROB1)
+    parser.add_argument("--remove_dup", type=str, default="None", 
+                        help="Loại bỏ bản ghi duplicate nhưng có nhiều nhãn")
     args = parser.parse_args()
 
     prob_config = get_prob_config(args.phase_id, args.prob_id)
-    RawDataProcessor.process_raw_data(prob_config)
+    if args.remove_dup not in ['abs_0', 'abs_1', 'rel', 'None']:
+        print("The available removing duplicate records methods: [abs_0, abs_1, rel, None]")
+    else:
+        RawDataProcessor.process_raw_data(prob_config, args.remove_dup)
