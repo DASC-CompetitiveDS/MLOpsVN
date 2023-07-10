@@ -195,4 +195,4 @@ poetry.toml
 .idea
 
 mlruns
-data/model_config/*
+# data/model_config/*

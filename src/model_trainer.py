@@ -74,7 +74,7 @@ class ModelTrainer:
                             "confusion_matrix.png")
             
         fig, importance_dict = get_feature_importance(model)
-        mlflow.log_figure(fig)
+        mlflow.log_figure(fig, 'feature_importances.png')
         mlflow.log_dict(importance_dict, "feature_importances.json")
         
         signature = infer_signature(test_x, predictions)
