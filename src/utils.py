@@ -1,6 +1,10 @@
 import logging
 import os
 from pathlib import Path
+from sklearn.metrics import confusion_matrix
+from matplotlib import pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
@@ -28,3 +32,24 @@ class AppConfig:
     # MLFLOW_TRACKING_URI = 'http://localhost:5000'
     MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
     MLFLOW_MODEL_PREFIX = "model"
+    
+def get_confusion_matrix(y_true, y_pred):
+    cm = confusion_matrix(y_true, y_pred)
+    fig = plt.figure()
+    sns.heatmap(cm,
+                annot=True,
+                fmt='g')
+    plt.ylabel('Prediction',fontsize=13)
+    plt.xlabel('Actual',fontsize=13)
+    plt.title('Confusion Matrix',fontsize=17)
+    # plt.show()
+    return fig
+
+def get_feature_importance(model):
+    importance_df = pd.DataFrame({'Feature':model.feature_name_,'Importance': model.feature_importances_})
+    importance_df = importance_df.sort_values(by='Importance', ascending=False)
+    fig = plt.figure(figsize=(20,15))
+    sns.barplot(importance_df, x='Importance', y='Feature')
+    plt.title(f'feature importances', fontsize=17)
+    return fig, importance_df.to_dict('records')
+    

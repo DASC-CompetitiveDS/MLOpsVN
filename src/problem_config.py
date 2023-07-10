@@ -5,6 +5,8 @@ from utils import AppPath
 class ProblemConst:
     PHASE1 = "phase-1"
     PROB1 = "prob-1"
+    PHASE2 = "phase-2"
+    PROB2 = "prob-2"
 
 
 class ProblemConfig:
@@ -86,12 +88,13 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     #create ml models params
     prob_config.params_tuning = {}
     
-    prob_config.params_tuning['xgb'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
+    prob_config.params_tuning['xgb'] = {'max_depth': ([8, 15], 'int'), 'num_leaves': ([15, 40], 'int'),
                                         'n_estimators': ([1000, 5000], 'int'), 'subsample': ([0.6, 0.9], 'float'),
                                         'colsample_bytree': ([0.6, 0.9], 'float')}
-    prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaveas': ([15, 40]),
-                                         'subsample': ([0.6, 0.9], 'float'), 'colsample_bytree': ([0.6, 0.9], 'float'), 
-                                         'n_estimators': ([3000, 8000], 'int')}
+    prob_config.params_tuning['lgbm'] = {'max_depth': ([8, 15], 'int'), 'num_leaves': ([15, 40], 'int'),
+                                         'subsample': ([0.6, 1], 'float'), 'colsample_bytree': ([0.6, 1], 'float'), 
+                                        #  'n_estimators': ([3000, 8000], 'int')
+                                         }
     prob_config.params_tuning['catboost'] = {}
     prob_config.params_tuning['rdf'] = {}
     

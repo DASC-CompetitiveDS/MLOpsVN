@@ -17,16 +17,16 @@ from problem_config import (
 )
 from raw_data_processor import RawDataProcessor
 from model_optimization import get_best_params, model_training
-from utils import AppConfig
+from utils import AppConfig, get_confusion_matrix, get_feature_importance
 
 import warnings
 warnings.filterwarnings("ignore")
 
-mlflow.autolog()
+
 
 class ModelTrainer:
     @staticmethod
-    def train_model(prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, add_captured_data=False):
+    def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, add_captured_data=False):
         logging.info("start train_model")
         # init mlflow
         model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}_{'' if add_captured_data is False else 'add_captured_data'}"
@@ -78,9 +78,16 @@ class ModelTrainer:
         with open(model_config_path, "w") as file:
             yaml.dump(model_config, file)
             
-        # mlflow log
         mlflow.log_params(model.get_params())
         mlflow.log_metrics(metrics)
+        if args.log_confusion_matrix:
+            mlflow.log_figure(get_confusion_matrix(test_y, predictions), 
+                            "confusion_matrix.png")
+            
+        fig, importance_dict = get_feature_importance(model)
+        mlflow.log_figure(fig)
+        mlflow.log_dict(importance_dict, "feature_importances.json")
+        
         signature = infer_signature(test_x, predictions)
         mlflow.sklearn.log_model(
             sk_model=model,
@@ -95,7 +102,7 @@ class ModelTrainer:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase-id", type=str, default=ProblemConst.PHASE1)
+    parser.add_argument("--phase-id", type=str, default=ProblemConst.PHASE2)
     parser.add_argument("--prob-id", type=str, default=ProblemConst.PROB1)
 
     parser.add_argument("--task", type=str, default='clf', 
@@ -104,17 +111,22 @@ if __name__ == "__main__":
                         help='loại model sử dụng (xgb, lgbm, cb, rdf)')
     parser.add_argument("--class_weight", type=lambda x: (str(x).lower() == "true"), default=False, 
                         help='Sử dụng class weight')
-    parser.add_argument("--time_tuning", type=float, default=0, 
+    parser.add_argument("--time_tuning", type=float, default=20, 
                         help='Thời gian tuning model, nếu = 0 tức là không sử dụng')
     parser.add_argument("--add-captured-data", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
+    
     args = parser.parse_args()
 
     prob_config = get_prob_config(args.phase_id, args.prob_id)
+    
+    # mlflow.autolog()
+    
     if args.type_model not in ['xgb', 'lgbm', 'cb', 'rdf']:
         print("The available model type: [xgb, lgbm, cb, rdf]")
     elif args.task not in ['clf', 'reg']:
         print("The available task: [clf, reg]")
     else:
-        ModelTrainer.train_model(
-            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, add_captured_data=args.add_captured_data
+        ModelTrainer.train_model(args,
+            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, add_captured_data=args.add_captured_data,
         )

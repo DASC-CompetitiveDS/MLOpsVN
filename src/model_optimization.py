@@ -8,6 +8,7 @@ import optuna
 from optuna.samplers import TPESampler
 import logging
 import warnings
+import mlflow
 warnings.filterwarnings("ignore")
 
 
@@ -25,26 +26,33 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
         param_grid['class_weight'] = 'balanced'
         
     if type_model == 'xgb':
-        reg = XGBRegressor(**param_grid, verbose=0) if type_model == 'reg' else \
-              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0)
-        reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], early_stopping_rounds=300, verbose=0)
+        reg = XGBRegressor(**param_grid, verbose=0, n_estimators=10000) if type_model == 'reg' else \
+              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0, n_estimators=10000)
+        reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=0, early_stopping_rounds=300)
     elif type_model == 'lgbm':
-        reg = LGBMRegressor(metric=None, **param_grid, verbose=0) if type_model == 'reg' else \
-              LGBMClassifier(metric=None, **param_grid, verbose=0)
+        reg = LGBMRegressor(metric=None, **param_grid, verbose=0, n_estimators=10000) if type_model == 'reg' else \
+              LGBMClassifier(metric=None, **param_grid, verbose=0, n_estimators=10000)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"
         reg.fit(X_train, y_train, eval_set=(X_valid, y_valid), eval_metric=eval_metric, 
-                categorical_feature=cat_features, early_stopping_rounds=300, verbose=0)        
+                categorical_feature=cat_features, verbose=0, early_stopping_rounds=300)        
     elif type_model == 'catboost':
         pass
     else:
         pass
     
     if type_model == 'reg':
+        key_metrics = 'mean_squared_error'
         res = mean_squared_error(y_valid, reg.predict(X_valid), squared=False)
     else:
+        key_metrics = 'roc_auc_score' if unique_n == 2 else 'f1_score'
         res = roc_auc_score(y_valid, reg.predict_proba(X_valid)[:, 1]) if unique_n == 2 else \
               f1_score(y_valid, reg.predict(X_valid), average='macro')
+    with mlflow.start_run():
+        mlflow.log_params(reg.get_params())
+        mlflow.log_metrics({key_metrics: res})  
+        mlflow.log_metrics({'best_interation_':reg.best_iteration_})
+    
     return res
 
 
@@ -63,21 +71,22 @@ def get_best_params(train_data, valid_data, type_model, task, params_tuning, cat
     return params
 
 def model_training(train_data, valid_data, type_model, task, param_grid, cat_features, is_class_weight):
+    logging.info("=============== TRAINING =============")
     X_train, X_valid, y_train, y_valid = train_data[0], valid_data[0], train_data[1], valid_data[1]
     unique_n = len(np.unique(y_train))
     if is_class_weight is True:
         param_grid['class_weight'] = 'balanced'
     if type_model == 'xgb':
-        reg = XGBRegressor(**param_grid, verbose=0) if type_model == 'reg' else \
-              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0)
-        reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], early_stopping_rounds=300, verbose=0)
+        reg = XGBRegressor(**param_grid, verbose=0, n_estimators=10000) if type_model == 'reg' else \
+              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0, n_estimators=10000)
+        reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=0, early_stopping_rounds=300)
     elif type_model == 'lgbm':
-        reg = LGBMRegressor(metric=None, **param_grid, verbose=0) if type_model == 'reg' else \
-              LGBMClassifier(metric=None, **param_grid, verbose=0)
+        reg = LGBMRegressor(metric=None, **param_grid, verbose=0, n_estimators=10000) if type_model == 'reg' else \
+              LGBMClassifier(metric=None, **param_grid, verbose=0, n_estimators=10000)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"
         reg.fit(X_train, y_train, eval_set=(X_valid, y_valid), eval_metric=eval_metric, 
-                categorical_feature=cat_features, early_stopping_rounds=300, verbose=0)        
+                categorical_feature=cat_features, verbose=0, early_stopping_rounds=300)        
     elif type_model == 'catboost':
         reg = None
     else:
