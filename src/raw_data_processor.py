@@ -45,26 +45,6 @@ class RawDataProcessor:
         return apply_df
     
     @staticmethod
-    def change_dup_records(X_train, target_col):
-        feature_group = X_train.columns.tolist()
-        dup_ = X_train.groupby(feature_group)[target_col].size().unstack(fill_value=0).reset_index()
-        res = ["Denial of Service", "Exploits", "Information Gathering", "Malware", "Normal", "Other"]
-        def get_label(doc, ex, ig, ml, norm, other):
-            arr_ = [doc, ex, ig, ml, norm, other]
-            idx_res = np.argmax(arr_)
-            return res[idx_res]
-
-        dup_["label_final"] = dup_.apply(lambda x: get_label(x["Denial of Service"], x["Exploits"], x["Information Gathering"], x["Malware"], x["Normal"], x["Other"]), axis=1)
-        dup_ = dup_.drop(columns=res)
-        feature_join = feature_group.copy()
-        feature_join.remove("label")
-        X_train_final = X_train.merge(dup_, how = "inner", on=feature_join)
-        # X_train_final = X_train_final[X_train_final["label"] == X_train_final["label_final"]].reset_index(drop=True)
-        X_train_final = X_train_final.drop(columns=["label"])
-        X_train_final = X_train_final.rename(columns = {"label_final": "label"})
-        return X_train_final
-    
-    @staticmethod
     def remove_dup_absolutely_records(X_train, target_col, type_remove):
         feature_group = X_train.columns.tolist()
         dup_ = X_train.groupby(feature_group).agg(count_per_label=(target_col, "count")).reset_index()
