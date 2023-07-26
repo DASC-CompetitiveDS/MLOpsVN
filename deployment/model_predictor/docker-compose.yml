@@ -1,6 +1,7 @@
 version: "3.7"
 services:
-  model_predictor:
+  model_predictor_1:
+    container_name: model_predictor_1
     image: ${IMAGE_NAME}:${IMAGE_TAG}
     restart: on-failure
     volumes:
@@ -9,11 +10,28 @@ services:
       - ../../data/model_config:/sample_solution/data/model_config
       - ../../data/captured_data:/sample_solution/data/captured_data
     ports:
-      - ${PORT}:8000
+      - ${PORT_1}:8000
     environment:
       MODEL_CONFIG_PATH1: ${MODEL_CONFIG_PATH1}
+      MLFLOW_TRACKING_URI: http://host.docker.internal:5000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: /bin/sh -c "python3 src/model_predictor_1.py --config-path1 ${MODEL_CONFIG_PATH1}" --port 8000
+
+  model_predictor_2:
+    container_name: model_predictor_2
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
+    restart: on-failure
+    volumes:
+      - ../../data/raw_data:/sample_solution/data/raw_data
+      - ../../data/train_data:/sample_solution/data/train_data
+      - ../../data/model_config:/sample_solution/data/model_config
+      - ../../data/captured_data:/sample_solution/data/captured_data
+    ports:
+      - ${PORT_2}:8000
+    environment:
       MODEL_CONFIG_PATH2: ${MODEL_CONFIG_PATH2}
       MLFLOW_TRACKING_URI: http://host.docker.internal:5000
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    entrypoint: /bin/sh -c "python3 src/model_predictor.py --config-path1 ${MODEL_CONFIG_PATH1} --config-path2 ${MODEL_CONFIG_PATH2}" --port 8000
+    entrypoint: /bin/sh -c "python3 src/model_predictor_2.py --config-path2 ${MODEL_CONFIG_PATH2}" --port 8000

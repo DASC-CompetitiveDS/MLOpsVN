@@ -107,7 +107,7 @@ class PredictorApi:
         # def root():
         #     return {"message": "hello"}
 
-        @self.app.post("/")
+        @self.app.post("/phase-2/prob-2/predict")
         def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictor2.predict(data, 1)
@@ -126,11 +126,22 @@ class PredictorApi:
     def run(self, port):
         uvicorn.run("model_predictor_2:api.app", host="0.0.0.0", port=port, workers = 3)
 
+default_config_path = (
+        AppPath.MODEL_CONFIG_DIR
+        / ProblemConst.PHASE1
+        / ProblemConst.PROB1
+        / "model-1.yaml"
+    ).as_posix()
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--config-path2", type=str, default=default_config_path)
 
-predictor2 = ModelPredictor(config_file_path="data/model_config/phase-2/prob-2/phase-2_prob-2_lgbm__.yaml")
+parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
+args = parser.parse_args()
+
+predictor2 = ModelPredictor(config_file_path=args.config_path2)
 
 api = PredictorApi(predictor2)
 
 if __name__ == "__main__":
-    api.run(port=5042)
+    api.run(port=args.port)
