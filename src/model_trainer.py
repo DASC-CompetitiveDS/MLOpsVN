@@ -29,7 +29,13 @@ class ModelTrainer:
     def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, add_captured_data=False):
         logging.info("start train_model")
         # init mlflow
-        model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}_{'' if add_captured_data is False else 'add_captured_data'}"
+        if args.model_name is None:
+            model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}\
+                            _{'' if class_weight is False else 'class_weight'}\
+                            _{'' if add_captured_data is False else 'add_captured_data'}" 
+        else:
+            model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{args.model_name}"
+                        
         mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         mlflow.set_experiment(model_name)
 
@@ -53,10 +59,11 @@ class ModelTrainer:
         if time_tuning != 0:
             params_tuning = prob_config.params_tuning[type_model]
             model_params = get_best_params((train_x, train_y), (test_x, test_y), type_model, task, params_tuning, category_features, 
-                                           class_weight, time_tuning, idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}")
+                                           class_weight, time_tuning, idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}", model_name=model_name)
         else:
             model_params = prob_config.params_fix[type_model]
-            
+        
+        mlflow.start_run(run_name=model_name)
         
         # train and evaluate
         model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), 
@@ -65,8 +72,10 @@ class ModelTrainer:
         metrics = {key_metrics: validation_score}
         logging.info(f"metrics: {metrics}")
         
-        #model config yaml.file
+        # model config yaml.file
         # mlflow log
+        
+        mlflow.set_tag('type_model', type_model)
         mlflow.log_params(model.get_params())
         mlflow.log_metrics(metrics)
         if args.log_confusion_matrix:
@@ -111,6 +120,8 @@ if __name__ == "__main__":
                         help='Thời gian tuning model, nếu = 0 tức là không sử dụng')
     parser.add_argument("--add-captured-data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--model_name", type=str, default=None)
+
     
     args = parser.parse_args()
 
