@@ -29,11 +29,11 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
         param_grid['class_weight'] = 'balanced'
         
     if type_model == 'xgb':
-        reg = XGBRegressor(**param_grid, verbose=0) if type_model == 'reg' else \
+        reg = XGBRegressor(**param_grid, verbose=0) if task == 'reg' else \
               XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0)
         reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=0, early_stopping_rounds=300)
     elif type_model == 'lgbm':
-        reg = LGBMRegressor(metric=None, **param_grid, verbose=0) if type_model == 'reg' else \
+        reg = LGBMRegressor(metric=None, **param_grid, verbose=0) if task == 'reg' else \
               LGBMClassifier(metric=None, **param_grid, verbose=0)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"
@@ -80,11 +80,11 @@ def model_training(train_data, valid_data, type_model, task, param_grid, cat_fea
     if is_class_weight is True:
         param_grid['class_weight'] = 'balanced'
     if type_model == 'xgb':
-        reg = XGBRegressor(**param_grid, verbose=0, n_estimators=10000) if type_model == 'reg' else \
+        reg = XGBRegressor(**param_grid, verbose=0, n_estimators=10000) if task == 'reg' else \
               XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0, n_estimators=10000)
         reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=0, early_stopping_rounds=300)
     elif type_model == 'lgbm':
-        reg = LGBMRegressor(metric=None, **param_grid, n_estimators=10000, verbose=0) if type_model == 'reg' else \
+        reg = LGBMRegressor(metric=None, **param_grid, n_estimators=10000, verbose=0) if task == 'reg' else \
               LGBMClassifier(metric=None, **param_grid, n_estimators=10000, verbose=0)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"

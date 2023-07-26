@@ -26,15 +26,15 @@ warnings.filterwarnings("ignore")
 
 class ModelTrainer:
     @staticmethod
-    def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, add_captured_data=False):
+    def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, drift_training=False, add_captured_data=False):
         logging.info("start train_model")
         # init mlflow
-        model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}_{'' if add_captured_data is False else 'add_captured_data'}"
+        model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}_{'' if add_captured_data is False else 'add_captured_data'}{'_drift' if drift_training is True else ''}"
         mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         mlflow.set_experiment(model_name)
 
         # load train data
-        train_x, train_y = RawDataProcessor.load_train_data(prob_config)
+        train_x, train_y = RawDataProcessor.load_train_data(prob_config, drift_training)
         logging.info(f"loaded {len(train_x)} samples")
 
         if add_captured_data:
@@ -47,7 +47,7 @@ class ModelTrainer:
             category_features = pickle.load(file)
         category_features = list(category_features.keys())
             
-        test_x, test_y = RawDataProcessor.load_test_data(prob_config)  
+        test_x, test_y = RawDataProcessor.load_test_data(prob_config, drift_training)  
         
         #get params
         if time_tuning != 0:
@@ -109,7 +109,9 @@ if __name__ == "__main__":
                         help='Sử dụng class weight')
     parser.add_argument("--time_tuning", type=float, default=20, 
                         help='Thời gian tuning model, nếu = 0 tức là không sử dụng')
-    parser.add_argument("--add-captured-data", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--drift_training", type=lambda x: (str(x).lower() == "true"), default=False, 
+                        help='sử dụng dữ liệu drift')
+    parser.add_argument("--add_captured_data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     
     args = parser.parse_args()
@@ -124,5 +126,5 @@ if __name__ == "__main__":
         print("The available task: [clf, reg]")
     else:
         ModelTrainer.train_model(args,
-            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, add_captured_data=args.add_captured_data,
+            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, drift_training=args.drift_training, add_captured_data=args.add_captured_data
         )

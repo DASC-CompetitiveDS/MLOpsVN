@@ -75,8 +75,12 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     )
     prob_config.train_x_path = prob_config.train_data_path / "train_x.parquet"
     prob_config.train_y_path = prob_config.train_data_path / "train_y.parquet"
+    prob_config.train_x_drift_path = prob_config.train_data_path / "train_x_drift.parquet"
+    prob_config.train_y_drift_path = prob_config.train_data_path / "train_y_drift.parquet"
     prob_config.test_x_path = prob_config.train_data_path / "test_x.parquet"
     prob_config.test_y_path = prob_config.train_data_path / "test_y.parquet"
+    prob_config.test_x_drift_path = prob_config.train_data_path / "test_x_drift.parquet"
+    prob_config.test_y_drift_path = prob_config.train_data_path / "test_y_drift.parquet"
 
     # get properties of ml-problem
     feature_configs = load_feature_configs_dict(prob_config.feature_config_path)
