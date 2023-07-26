@@ -12,7 +12,9 @@ import mlflow
 warnings.filterwarnings("ignore")
 
 
-def objective(trial, train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight):
+def objective(trial, train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight, model_name):
+    mlflow.start_run(run_name=f"{model_name}_tuning_{trial.number}")
+
     X_train, X_valid, y_train, y_valid = train_data[0], valid_data[0], train_data[1], valid_data[1]
     unique_n = len(np.unique(y_train))
     param_grid = {}
@@ -51,17 +53,19 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
         key_metrics = 'roc_auc_score' if unique_n == 2 else 'f1_score'
         res = roc_auc_score(y_valid, reg.predict_proba(X_valid)[:, 1]) if unique_n == 2 else \
               accuracy_score(y_valid, reg.predict(X_valid))
-    with mlflow.start_run():
-        mlflow.log_params(reg.get_params())
-        mlflow.log_metrics({key_metrics: res})  
-        mlflow.log_metrics({'best_interation_':reg.best_iteration_})
+    # with mlflow.start_run(run_name=f"{model_name}_tuning_{trial.trial_id}"):
+    mlflow.set_tag('type_model', type_model)
+    mlflow.log_params(reg.get_params())
+    mlflow.log_metrics({key_metrics: res})  
+    mlflow.log_metrics({'best_interation_':reg.best_iteration_})
+    mlflow.end_run()
     
     return res
 
 
-def get_best_params(train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight, train_time, idx_phase = "1_1"):
+def get_best_params(train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight, train_time, idx_phase = "1_1", model_name=None):
     direction = "minimize" if task == 'reg' else "maximize"
-    func = lambda trial: objective(trial, train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight)
+    func = lambda trial: objective(trial, train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight, model_name)
     study_name_save = f"{idx_phase}_{type_model}_{'' if is_class_weight is False else 'classweight'}_{train_time}"
     study = optuna.create_study(direction=direction, sampler=TPESampler(), study_name=study_name_save)
     study.optimize(func, timeout=train_time)

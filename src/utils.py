@@ -52,4 +52,5 @@ def get_feature_importance(model):
     sns.barplot(importance_df, x='Importance', y='Feature')
     plt.title(f'feature importances', fontsize=17)
     return fig, importance_df.to_dict('records')
+
     
