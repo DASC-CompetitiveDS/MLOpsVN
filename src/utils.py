@@ -45,10 +45,10 @@ def get_confusion_matrix(y_true, y_pred):
     # plt.show()
     return fig
 
-def get_feature_importance(model):
-    importance_df = pd.DataFrame({'Feature':model.feature_name_,'Importance': model.feature_importances_})
+def get_feature_importance(model, importance_type='split'):
+    importance_df = pd.DataFrame({'Feature':model.feature_name_,'Importance':model.booster_.feature_importance(importance_type)})
     importance_df = importance_df.sort_values(by='Importance', ascending=False)
-    fig = plt.figure(figsize=(20,15))
+    fig = plt.figure(figsize=(15,10))
     sns.barplot(importance_df, x='Importance', y='Feature')
     plt.title(f'feature importances', fontsize=17)
     return fig, importance_df.to_dict('records')
