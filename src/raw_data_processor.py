@@ -210,6 +210,15 @@ class RawDataProcessor:
         captured_y = pd.read_parquet(captured_y_path)
         return captured_x, captured_y[prob_config.target_col]
 
+    @staticmethod
+    def combine_train_val(train_x, train_y, test_x, test_y):
+        train_x = pd.concat([train_x, test_x])
+        train_y = pd.concat([train_y, test_y])    
+        
+        test_x = train_x
+        test_y = train_y
+        
+        return train_x, train_y, test_x, test_y    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

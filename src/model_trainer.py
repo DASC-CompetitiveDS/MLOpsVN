@@ -16,7 +16,7 @@ from problem_config import (
     get_prob_config,
 )
 from raw_data_processor import RawDataProcessor
-from model_optimization import get_best_params, model_training
+from model_optimization import get_best_params, model_training, get_best_params_cv
 from utils import AppConfig, get_confusion_matrix, get_feature_importance
 
 import warnings
@@ -32,7 +32,8 @@ class ModelTrainer:
         if args.model_name is None:
             model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}\
                             {'' if class_weight is False else '_class_weight'}\
-                            {'' if add_captured_data is False else '_add_captured_data'}" 
+                            {'' if add_captured_data is False else '_add_captured_data'}\
+                            {'' if args.cross_validation is False else '_cv'}" 
         else:
             model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{args.model_name}"
                         
@@ -48,26 +49,37 @@ class ModelTrainer:
             train_x = pd.concat([train_x, captured_x])
             train_y = pd.concat([train_y, captured_y])
             logging.info(f"added {len(captured_x)} captured samples")
-        
+                               
         with open(prob_config.category_index_path, "rb") as file:
             category_features = pickle.load(file)
         category_features = list(category_features.keys())
             
-        test_x, test_y = RawDataProcessor.load_test_data(prob_config)  
+        test_x, test_y = RawDataProcessor.load_test_data(prob_config)
         
-        #get params
+        if args.cross_validation:
+            train_x, train_y, test_x, test_y = RawDataProcessor.combine_train_val(train_x, train_y, test_x, test_y)
+        
+        # get params
         if time_tuning != 0:
-            params_tuning = prob_config.params_tuning[type_model]
-            model_params = get_best_params((train_x, train_y), (test_x, test_y), type_model, task, params_tuning, category_features, 
-                                           class_weight, time_tuning, idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}", model_name=model_name)
+            if not args.cross_validation:
+                params_tuning = prob_config.params_tuning[type_model]
+                model_params = get_best_params((train_x, train_y), (test_x, test_y), type_model, task, params_tuning, category_features, 
+                                            class_weight, time_tuning, idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}", model_name=model_name, args=args)
+            else:
+                model_params, num_boost_round = get_best_params_cv((train_x, train_y), type_model, task, category_features, class_weight, time_tuning, 
+                                                  idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}", model_name=model_name, args=args)
         else:
             model_params = prob_config.params_fix[type_model]
         
         mlflow.start_run(run_name=model_name)
         
         # train and evaluate
-        model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), 
-                                                              type_model, task, model_params, category_features, class_weight)
+        if not args.cross_validation:
+            model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), 
+                                                                type_model, task, model_params, category_features, class_weight)
+        else:
+            model, validation_score, predictions = model_training((train_x, train_y), (test_x, test_y), 
+                                                                type_model, task, model_params, category_features, class_weight, num_boost_round)
         key_metrics = "validation_score"
         metrics = {key_metrics: validation_score}
         logging.info(f"metrics: {metrics}")
@@ -122,6 +134,7 @@ if __name__ == "__main__":
     parser.add_argument("--add-captured-data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--model_name", type=str, default=None)
+    parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=True)
 
     
     args = parser.parse_args()
