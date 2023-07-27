@@ -31,8 +31,8 @@ class ModelTrainer:
         # init mlflow
         if args.model_name is None:
             model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}\
-                            _{'' if class_weight is False else 'class_weight'}\
-                            _{'' if add_captured_data is False else 'add_captured_data'}" 
+                            {'' if class_weight is False else '_class_weight'}\
+                            {'' if add_captured_data is False else '_add_captured_data'}" 
         else:
             model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{args.model_name}"
                         
@@ -81,10 +81,11 @@ class ModelTrainer:
         if args.log_confusion_matrix:
             mlflow.log_figure(get_confusion_matrix(test_y, predictions), 
                             "confusion_matrix.png")
-            
-        fig, importance_dict = get_feature_importance(model)
-        mlflow.log_figure(fig, 'feature_importances.png')
-        mlflow.log_dict(importance_dict, "feature_importances.json")
+        
+        for importance_type in ['split', 'gain']:
+            fig, importance_dict = get_feature_importance(model, importance_type=importance_type)
+            mlflow.log_figure(fig, f'feature_importances_{importance_type}.png')
+            mlflow.log_dict(importance_dict, f"feature_importances_{importance_type}.json")
         
         signature = infer_signature(test_x, predictions)
         mlflow.sklearn.log_model(
