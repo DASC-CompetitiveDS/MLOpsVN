@@ -1,0 +1,4 @@
+model_name: phase-2_prob-1_lgbm__add_captured_data
+model_version: 3
+phase_id: phase-2
+prob_id: prob-1

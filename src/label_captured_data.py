@@ -17,6 +17,8 @@ def label_captured_data_cluster(prob_config: ProblemConfig, ratio_cluster: int):
     logging.info("Load captured data")
     captured_x = pd.DataFrame()
     for file_path in prob_config.captured_data_dir.glob("*.parquet"):
+        if "/123.parquet" in str(file_path):
+            continue
         captured_data = pd.read_parquet(file_path)
         captured_x = pd.concat([captured_x, captured_data])
 
@@ -101,6 +103,8 @@ def label_captured_data_model(prob_config: ProblemConfig, model_name: str):
     logging.info("Load captured data")
     captured_x = pd.DataFrame()
     for file_path in prob_config.captured_data_dir.glob("*.parquet"):
+        if "/123.parquet" in str(file_path):
+            continue
         captured_data = pd.read_parquet(file_path)
         captured_x = pd.concat([captured_x, captured_data])
     

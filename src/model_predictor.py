@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import time
+import json
 
 import mlflow
 import pandas as pd
@@ -11,7 +12,6 @@ import yaml
 from fastapi import FastAPI, Request
 from pandas.util import hash_pandas_object
 from pydantic import BaseModel
-
 from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
 from utils import AppConfig, AppPath
@@ -48,8 +48,12 @@ class ModelPredictor:
         model_uri = os.path.join(
             "models:/", self.config["model_name"], str(self.config["model_version"])
         )
+        model_drift = os.path.join(
+            "models:/", "phase-2_prob-2_lgbm___drift", "3"
+        )
         self.input_schema = mlflow.models.Model.load(model_uri).get_input_schema().to_dict()
         self.model = mlflow.sklearn.load_model(model_uri)
+        self.model_drift = mlflow.sklearn.load_model(model_drift)
 
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
@@ -61,16 +65,26 @@ class ModelPredictor:
 
         # preprocess
         raw_df = pd.DataFrame(data.rows, columns=data.columns)
+
+        if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
+            ModelPredictor.save_request_data(
+                raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
+            )
+
         feature_df = RawDataProcessor.apply_category_features(
             raw_df=raw_df,
             categorical_cols=self.prob_config.categorical_cols,
             category_index=self.category_index,
         )
-        # save request data for improving models
-        # ModelPredictor.save_request_data(
-        #     feature_df, self.prob_config.captured_data_dir, data.id
-        # )
+        if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
+            ModelPredictor.save_request_data(
+                feature_df, self.prob_config.captured_data_dir, data.id
+            )
+            
         get_features = [each['name'] for each in self.input_schema]
+        count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
+        count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
+        res_drift = 1 if count_dup > 200 else 0
         if type_ == 0:
             prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
         else:
@@ -83,11 +97,12 @@ class ModelPredictor:
         return {
             "id": data.id,
             "predictions": prediction.tolist(),
-            "drift": 0,
+            "drift": res_drift
         }
 
     @staticmethod
     def save_request_data(feature_df: pd.DataFrame, captured_data_dir, data_id: str):
+        os.makedirs(captured_data_dir, exist_ok=True)
         if data_id.strip():
             filename = data_id
         else:
