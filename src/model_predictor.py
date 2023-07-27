@@ -66,25 +66,31 @@ class ModelPredictor:
         # preprocess
         raw_df = pd.DataFrame(data.rows, columns=data.columns)
 
-        if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
-            ModelPredictor.save_request_data(
-                raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
-            )
+        #======================= CAPTURE DATA =============#
+
+        # if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
+        #     ModelPredictor.save_request_data(
+        #         raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
+        #     )
+
+
+        # if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
+        #     ModelPredictor.save_request_data(
+        #         feature_df, self.prob_config.captured_data_dir, data.id
+        #     )
 
         feature_df = RawDataProcessor.apply_category_features(
             raw_df=raw_df,
             categorical_cols=self.prob_config.categorical_cols,
             category_index=self.category_index,
         )
-        if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
-            ModelPredictor.save_request_data(
-                feature_df, self.prob_config.captured_data_dir, data.id
-            )
             
         get_features = [each['name'] for each in self.input_schema]
+        
         count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
         count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
         res_drift = 1 if count_dup > 200 else 0
+        
         if type_ == 0:
             prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
         else:

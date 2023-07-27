@@ -136,7 +136,7 @@ if __name__ == "__main__":
     parser.add_argument("--add_captured_data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--model_name", type=str, default=None)
-    parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=True)
+    parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=False)
 
     
     args = parser.parse_args()
