@@ -64,12 +64,13 @@ class RawDataProcessor:
         dup_['order'] = dup_.sort_values(['count_per_label', target_col], ascending=[False, False]).groupby(feature_group).cumcount()
         dup_['count_per_label_lag'] = dup_.sort_values(['order']).groupby(feature_group)['count_per_label'].shift(-1)
         dup_ = dup_.merge(count_record, how='inner', on=feature_group)
-        dup_unique_label = dup_[dup_['count_distinct_label'] == 1].reset_index(drop=True)
-        dup_overlap_label = dup_[(dup_['count_distinct_label'] != 1) & (dup_['order'] == order_req) & ((dup_["count_per_label"]) != (dup_["count_per_label_lag"]))].reset_index(drop=True)
-        total_dup = pd.concat([dup_unique_label, dup_overlap_label]).reset_index(drop=True)[X_train.columns.tolist()]
+        total_dup = dup_[dup_['count_distinct_label'] == 1].reset_index(drop=True)
+        if order_req != -1:
+            dup_overlap_label = dup_[(dup_['count_distinct_label'] != 1) & (dup_['order'] == order_req) & ((dup_["count_per_label"]) != (dup_["count_per_label_lag"]))].reset_index(drop=True)
+            total_dup = pd.concat([total_dup, dup_overlap_label]).reset_index(drop=True)
         # total_x_merge = X_train.merge(total_dup, on=X_train.columns.tolist(), how='inner')
-        return total_dup
-        
+        return total_dup[X_train.columns.tolist()]
+
     @staticmethod
     def remove_dup_relatively_records(X_train, target_col):
         feature_group = X_train.columns.tolist()
@@ -81,7 +82,7 @@ class RawDataProcessor:
         return X_train_final
     
     @staticmethod
-    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, drift: bool):
+    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, drift: bool):
         logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
         training_data = pd.read_parquet(prob_config.raw_data_path)
         training_data, category_index = RawDataProcessor.build_category_features(
@@ -93,7 +94,7 @@ class RawDataProcessor:
             if remove_dup == 'rel':
                 training_data = RawDataProcessor.remove_dup_relatively_records(training_data.copy(), target_col)
             elif remove_dup == 'abs':
-                training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, 0)
+                training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, order_reg)
         else:
             training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, 1)
 
@@ -168,6 +169,7 @@ if __name__ == "__main__":
     parser.add_argument("--prob-id", type=str, default=ProblemConst.PROB1)
     parser.add_argument("--remove_dup", type=str, default="None", 
                         help="Loại bỏ bản ghi duplicate nhưng có nhiều nhãn")
+    parser.add_argument("--order_reg", type=int, default=0)
     parser.add_argument("--drift", type=lambda x: (str(x).lower() == "true"), default=False, 
                          help='Tạo dữ liệu drift')
     args = parser.parse_args()
@@ -176,4 +178,4 @@ if __name__ == "__main__":
     if args.remove_dup not in ['abs', 'rel', 'None']:
         print("The available removing duplicate records methods: [abs, rel, None]")
     else:
-        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.drift)
+        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.drift)
