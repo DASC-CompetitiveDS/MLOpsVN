@@ -26,10 +26,10 @@ warnings.filterwarnings("ignore")
 
 class ModelTrainer:
     @staticmethod
-    def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, drift_training=False, add_captured_data=False):
+    def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, drift_training=False, specific_handle=False, add_captured_data=False):
         logging.info("start train_model")
         # init mlflow
-        model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}_{'' if add_captured_data is False else 'add_captured_data'}{'_drift' if drift_training is True else ''}"
+        model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{'' if class_weight is False else 'class_weight'}_{'' if add_captured_data is False else 'add_captured_data'}{'_specific_handle' if specific_handle is True else ''}{'_drift' if drift_training is True else ''}"
         mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         mlflow.set_experiment(model_name)
 
@@ -42,9 +42,11 @@ class ModelTrainer:
             train_x = pd.concat([train_x, captured_x])
             train_y = pd.concat([train_y, captured_y])
             logging.info(f"added {len(captured_x)} captured samples")
-        
-        with open(prob_config.category_index_path, "rb") as file:
+
+        category_index_path = prob_config.category_index_path if specific_handle is False else prob_config.category_index_path_specific_handling
+        with open(category_index_path, "rb") as file:
             category_features = pickle.load(file)
+
         category_features = list(category_features.keys())
             
         test_x, test_y = RawDataProcessor.load_test_data(prob_config, drift_training)  
@@ -73,9 +75,10 @@ class ModelTrainer:
             mlflow.log_figure(get_confusion_matrix(test_y, predictions), 
                             "confusion_matrix.png")
             
-        fig, importance_dict = get_feature_importance(model)
-        mlflow.log_figure(fig, 'feature_importances.png')
-        mlflow.log_dict(importance_dict, "feature_importances.json")
+        for importance_type in ['split', 'gain']:
+            fig, importance_dict = get_feature_importance(model, importance_type=importance_type)
+            mlflow.log_figure(fig, f'feature_importances_{importance_type}.png')
+            mlflow.log_dict(importance_dict, f"feature_importances_{importance_type}.json")
         
         signature = infer_signature(test_x, predictions)
         mlflow.sklearn.log_model(
@@ -111,6 +114,7 @@ if __name__ == "__main__":
                         help='Thời gian tuning model, nếu = 0 tức là không sử dụng')
     parser.add_argument("--drift_training", type=lambda x: (str(x).lower() == "true"), default=False, 
                         help='sử dụng dữ liệu drift')
+    parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--add_captured_data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     
@@ -126,5 +130,5 @@ if __name__ == "__main__":
         print("The available task: [clf, reg]")
     else:
         ModelTrainer.train_model(args,
-            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, drift_training=args.drift_training, add_captured_data=args.add_captured_data
+            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, drift_training=args.drift_training, specific_handle=args.specific_handle, add_captured_data=args.add_captured_data
         )
