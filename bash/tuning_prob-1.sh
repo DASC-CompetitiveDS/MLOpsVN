@@ -3,4 +3,4 @@ python3 src/model_trainer.py \
         --prob-id prob-1 \
         --time_tuning 60 \
         --cross_validation True \
-        --model_name cv
+        --cross_validation True

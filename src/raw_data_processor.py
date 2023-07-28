@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from problem_config import ProblemConfig, ProblemConst, get_prob_config
 from sklearn.model_selection import StratifiedKFold
+from specific_data_processing import ProcessData
 
 class TargetEncoder:
     def __init__(self) -> None:
@@ -82,12 +83,9 @@ class RawDataProcessor:
         return X_train_final
     
     @staticmethod
-    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, drift: bool):
+    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool):
         logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
         training_data = pd.read_parquet(prob_config.raw_data_path)
-        training_data, category_index = RawDataProcessor.build_category_features(
-            training_data, prob_config.categorical_cols
-        )
         target_col = prob_config.target_col  
         
         if drift is False:
@@ -97,6 +95,18 @@ class RawDataProcessor:
                 training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, order_reg)
         else:
             training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, 1)
+        
+        if specific_handle is True:
+            training_data = ProcessData.HANDLE_DATA[f'{prob_config.phase_id}_{prob_config.prob_id}'](training_data)
+
+        if specific_handle is False:
+            training_data, category_index = RawDataProcessor.build_category_features(
+                training_data, prob_config.categorical_cols
+            )
+        else:
+            training_data, category_index = RawDataProcessor.build_category_features(
+                training_data, [col for col in training_data.columns.tolist() if training_data[col].dtype == 'O' and target_col != col]
+            )
 
         train_x, test_x, train_y, test_y = train_test_split(
             training_data.drop(columns=[target_col]),
@@ -110,9 +120,10 @@ class RawDataProcessor:
         train_y = train_y.reset_index(drop=False).drop(columns=['index'])
         test_y = test_y.reset_index(drop=False).drop(columns=['index'])
 
-        with open(prob_config.category_index_path, "wb") as f:
+        category_index_path = prob_config.category_index_path if specific_handle is False else prob_config.category_index_path_specific_handling
+        with open(category_index_path, "wb") as f:
             pickle.dump(category_index, f)
-
+        
         train_x.to_parquet(prob_config.train_x_path if drift is False else prob_config.train_x_drift_path, index=False)
         train_y.to_parquet(prob_config.train_y_path if drift is False else prob_config.train_y_drift_path, index=False)
         test_x.to_parquet(prob_config.test_x_path if drift is False else prob_config.test_x_drift_path, index=False)
@@ -150,8 +161,9 @@ class RawDataProcessor:
         return dev_x, dev_y[prob_config.target_col]
 
     @staticmethod
-    def load_category_index(prob_config: ProblemConfig):
-        with open(prob_config.category_index_path, "rb") as f:
+    def load_category_index(prob_config: ProblemConfig, specific_handle=False):
+        category_index_path = prob_config.category_index_path if specific_handle is False else prob_config.category_index_path_specific_handling
+        with open(category_index_path, "rb") as f:
             return pickle.load(f)
 
     @staticmethod
@@ -181,10 +193,11 @@ if __name__ == "__main__":
     parser.add_argument("--order_reg", type=int, default=0)
     parser.add_argument("--drift", type=lambda x: (str(x).lower() == "true"), default=False, 
                          help='Tạo dữ liệu drift')
+    parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
     args = parser.parse_args()
 
     prob_config = get_prob_config(args.phase_id, args.prob_id)
     if args.remove_dup not in ['abs', 'rel', 'None']:
         print("The available removing duplicate records methods: [abs, rel, None]")
     else:
-        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.drift)
+        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.specific_handle, args.drift)
