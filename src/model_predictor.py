@@ -74,12 +74,6 @@ class ModelPredictor:
                 raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
             )
 
-
-        if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
-            ModelPredictor.save_request_data(
-                feature_df, self.prob_config.captured_data_dir, data.id
-            )
-
         if self.specific_handle:
             raw_df = ProcessData.HANDLE_DATA[[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}']](raw_df, phase='test')
             cate_cols = [col for col in raw_df.columns.tolist() if raw_df[col].dtype == 'O']
@@ -91,6 +85,12 @@ class ModelPredictor:
             categorical_cols=cate_cols,
             category_index=self.category_index,
         )
+        
+        #======================= CAPTURE DATA =============#
+        if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
+            ModelPredictor.save_request_data(
+                feature_df, self.prob_config.captured_data_dir, data.id
+            )
             
         get_features = [each['name'] for each in self.input_schema]
         
