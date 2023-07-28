@@ -58,7 +58,7 @@ class ModelPredictor:
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
         # return random.choice([0, 1])
-        return 1
+        return 0
 
     def predict(self, data: Data, type_: int):
         # start_time = time.time()
@@ -90,13 +90,14 @@ class ModelPredictor:
         count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
         count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
         res_drift = 1 if count_dup > 200 else 0
+
+        # res_drift = self.detect_drift(feature_df[get_features])
         
         if type_ == 0:
             prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
         else:
             prediction = self.model.predict(feature_df[get_features])
         # logging.info(prediction)
-        # is_drifted = self.detect_drift(feature_df[get_features])
 
         # run_time = round((time.time() - start_time) * 1000, 0)
         # logging.info(f"prediction takes {run_time} ms")
