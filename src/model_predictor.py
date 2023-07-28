@@ -103,7 +103,7 @@ class ModelPredictor:
         else:
             prediction = self.model.predict(feature_df[get_features])
         # logging.info(prediction)
-        # is_drifted = self.detect_drift(feature_df[get_features])
+        # res_drift = self.detect_drift(feature_df[get_features])
 
         # run_time = round((time.time() - start_time) * 1000, 0)
         # logging.info(f"prediction takes {run_time} ms")
