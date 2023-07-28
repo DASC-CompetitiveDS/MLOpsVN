@@ -1,6 +1,7 @@
 captured_data/**
 !captured_data/.gitkeep
 
+!captured_data/**/.gitkeep
 !model_config/**/*.yaml
 
 raw_data/**

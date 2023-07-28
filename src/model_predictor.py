@@ -67,6 +67,8 @@ class ModelPredictor:
         # preprocess
         raw_df = pd.DataFrame(data.rows, columns=data.columns)
 
+        #======================= CAPTURE DATA =============#
+
         if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
             ModelPredictor.save_request_data(
                 raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
@@ -83,12 +85,15 @@ class ModelPredictor:
             categorical_cols=cate_cols,
             category_index=self.category_index,
         )
+        
+        #======================= CAPTURE DATA =============#
         if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
             ModelPredictor.save_request_data(
                 feature_df, self.prob_config.captured_data_dir, data.id
             )
             
         get_features = [each['name'] for each in self.input_schema]
+        
         count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
         count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
         res_drift = 1 if count_dup > 100 else 0
@@ -97,7 +102,7 @@ class ModelPredictor:
         else:
             prediction = self.model.predict(feature_df[get_features])
         # logging.info(prediction)
-        # is_drifted = self.detect_drift(feature_df[get_features])
+        # res_drift = self.detect_drift(feature_df[get_features])
 
         # run_time = round((time.time() - start_time) * 1000, 0)
         # logging.info(f"prediction takes {run_time} ms")
