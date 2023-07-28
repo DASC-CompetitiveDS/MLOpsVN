@@ -97,9 +97,10 @@ class ModelTrainer:
             mlflow.log_figure(get_confusion_matrix(test_y, predictions), 
                             "confusion_matrix.png")
             
-        fig, importance_dict = get_feature_importance(model)
-        mlflow.log_figure(fig, 'feature_importances.png')
-        mlflow.log_dict(importance_dict, "feature_importances.json")
+        for importance_type in ['split', 'gain']:
+            fig, importance_dict = get_feature_importance(model, importance_type=importance_type)
+            mlflow.log_figure(fig, f'feature_importances_{importance_type}.png')
+            mlflow.log_dict(importance_dict, f"feature_importances_{importance_type}.json")
         
         signature = infer_signature(test_x, predictions)
         mlflow.sklearn.log_model(
