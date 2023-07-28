@@ -69,16 +69,16 @@ class ModelPredictor:
 
         #======================= CAPTURE DATA =============#
 
-        # if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
-        #     ModelPredictor.save_request_data(
-        #         raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
-        #     )
+        if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
+            ModelPredictor.save_request_data(
+                raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
+            )
 
 
-        # if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
-        #     ModelPredictor.save_request_data(
-        #         feature_df, self.prob_config.captured_data_dir, data.id
-        #     )
+        if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
+            ModelPredictor.save_request_data(
+                feature_df, self.prob_config.captured_data_dir, data.id
+            )
 
         if self.specific_handle:
             raw_df = ProcessData.HANDLE_DATA[[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}']](raw_df, phase='test')

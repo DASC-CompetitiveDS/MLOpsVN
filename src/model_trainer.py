@@ -30,12 +30,12 @@ class ModelTrainer:
         logging.info("start train_model")
         # init mlflow
         if args.model_name is None:
-            model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}\
-                            {'' if class_weight is False else '_class_weight'}\
-                            {'' if add_captured_data is False else '_add_captured_data'}\
-                            {'' if args.cross_validation is False else '_cv'}\
-                            {'_specific_handle' if specific_handle is True else ''}\
-                            {'_drift' if drift_training is True else ''}" 
+            model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}"\
+                        +f"{'' if class_weight is False else '_class_weight'}"\
+                        +f"{'' if add_captured_data is False else '_add_captured_data'}"\
+                        +f"{'' if args.cross_validation is False else '_cv'}"\
+                        +f"{'_specific_handle' if specific_handle is True else ''}"\
+                        +f"{'_drift' if drift_training is True else ''}"
         else:
             model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{args.model_name}"
                         
