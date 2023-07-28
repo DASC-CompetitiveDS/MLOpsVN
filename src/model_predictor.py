@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
 from utils import AppConfig, AppPath
+from specific_data_processing import ProcessData
 
 import uvloop
 import asyncio
@@ -30,7 +31,7 @@ class Data(BaseModel):
 
 
 class ModelPredictor:
-    def __init__(self, config_file_path):
+    def __init__(self, config_file_path, specific_handle):
         with open(config_file_path, "r") as f:
             self.config = yaml.safe_load(f)
         logging.info(f"model-config: {self.config}")
@@ -40,9 +41,9 @@ class ModelPredictor:
         self.prob_config = create_prob_config(
             self.config["phase_id"], self.config["prob_id"]
         )
-
+        self.specific_handle = specific_handle
         # load category_index
-        self.category_index = RawDataProcessor.load_category_index(self.prob_config)
+        self.category_index = RawDataProcessor.load_category_index(self.prob_config, specific_handle)
 
         # load model
         model_uri = os.path.join(
@@ -79,9 +80,15 @@ class ModelPredictor:
         #         feature_df, self.prob_config.captured_data_dir, data.id
         #     )
 
+        if self.specific_handle:
+            raw_df = ProcessData.HANDLE_DATA[[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}']](raw_df, phase='test')
+            cate_cols = [col for col in raw_df.columns.tolist() if raw_df[col].dtype == 'O']
+        else:
+            cate_cols = self.prob_config.categorical_cols
+        
         feature_df = RawDataProcessor.apply_category_features(
             raw_df=raw_df,
-            categorical_cols=self.prob_config.categorical_cols,
+            categorical_cols=cate_cols,
             category_index=self.category_index,
         )
             
@@ -165,12 +172,12 @@ default_config_path = (
 parser = argparse.ArgumentParser()
 parser.add_argument("--config-path1", type=str, default=default_config_path)
 parser.add_argument("--config-path2", type=str, default=default_config_path)
-
+parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
 parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
 args = parser.parse_args()
 
-predictor1 = ModelPredictor(config_file_path=args.config_path1)
-predictor2 = ModelPredictor(config_file_path=args.config_path2)
+predictor1 = ModelPredictor(config_file_path=args.config_path1, specific_handle=args.specific_handle)
+predictor2 = ModelPredictor(config_file_path=args.config_path2, specific_handle=args.specific_handle)
 
 api = PredictorApi(predictor1, predictor2)
 
