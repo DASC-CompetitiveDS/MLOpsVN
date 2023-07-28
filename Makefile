@@ -12,7 +12,7 @@ mlflow_down:
 
 # predictor
 predictor_up:
-	bash deployment/deploy.sh run_predictor data/model_config/phase-2/prob-1/phase-2_prob-1_lgbm__.yaml data/model_config/phase-2/prob-2/phase-2_prob-2_lgbm___specific_handle.yaml True 5041
+	bash deployment/deploy.sh run_predictor data/model_config/phase-2/prob-1/phase-2_prob-1_cv.yaml data/model_config/phase-2/prob-2/phase-2_prob-2_lgbm__.yaml False 5041
 
 predictor_down:
 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml down

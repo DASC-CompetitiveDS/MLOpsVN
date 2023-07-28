@@ -91,7 +91,7 @@ class ModelPredictor:
         get_features = [each['name'] for each in self.input_schema]
         count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
         count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
-        res_drift = 1 if count_dup > 200 else 0
+        res_drift = 1 if count_dup > 100 else 0
         if type_ == 0:
             prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
         else:
