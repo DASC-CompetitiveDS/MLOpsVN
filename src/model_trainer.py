@@ -37,7 +37,7 @@ class ModelTrainer:
                         +f"{'_specific_handle' if specific_handle is True else ''}"\
                         +f"{'_drift' if drift_training is True else ''}"
         else:
-            model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{args.model_name}"
+            model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{type_model}_{args.model_name}"
                         
         mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         mlflow.set_experiment(model_name)
@@ -141,6 +141,7 @@ if __name__ == "__main__":
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--model_name", type=str, default=None)
     parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--learning_rate", type=float, default=0.1)
 
     
     args = parser.parse_args()
