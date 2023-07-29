@@ -54,6 +54,16 @@ class RawDataProcessor:
                 apply_df[col],
                 categories=category_index[col],
             ).codes
+        # apply_df[categorical_cols] = apply_df[categorical_cols].astype('category')
+
+        # # apply_cat_func = lambda col: pd.Categorical(col, categories=category_index[col]).codes    
+        # def apply_cat_func(col):
+        #     # print(type(col))
+        #     print(col)
+        #     return pd.Categorical(col, categories=category_index[col]).codes
+        
+        # apply_df[categorical_cols] = apply_df[categorical_cols].transform(apply_cat_func)
+        
         return apply_df
     
     @staticmethod
