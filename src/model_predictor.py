@@ -24,6 +24,7 @@ import asyncio
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 PREDICTOR_API_PORT = 8000
+LOG_TIME = False
 
 
 class Data(BaseModel):
@@ -76,6 +77,12 @@ class ModelPredictor:
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
         # return random.choice([0, 1])
+        count_dup = feature_df.groupby(feature_df.columns.to_list()).agg(count_unique = ('feature1', 'count'))
+        count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
+        res_drift = 1 if count_dup > 100 else 0
+        
+        return res_drift
+    
         return 1
 
     # @staticmethod
@@ -87,7 +94,10 @@ class ModelPredictor:
     #     return np.mean(results, axis=0)
     
     def predict(self, data: Data, type_: int):
-        # start_time = time.time()
+        # logging.info(f"Running on os.getpid(): {os.getpid()}")
+        
+        if LOG_TIME:
+            start_time = time.time()
 
         # preprocess
         raw_df = pd.DataFrame(data.rows, columns=data.columns)
@@ -111,6 +121,11 @@ class ModelPredictor:
             category_index=self.category_index,
         )
         
+        # if LOG_TIME:
+        #     run_time = round((time.time() - start_time) * 1000, 0)
+        #     logging.info(f"process data takes {run_time} ms")
+        #     start_time = time.time()
+        
         #======================= CAPTURE DATA =============#
         if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
             ModelPredictor.save_request_data(
@@ -118,11 +133,21 @@ class ModelPredictor:
             )
             
         get_features = [each['name'] for each in self.input_schema]
-        feature_df = feature_df[get_features]
-        count_dup = feature_df.groupby(get_features).agg(count_unique = ('feature1', 'count'))
-        count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
-        res_drift = 1 if count_dup > 100 else 0
-        # prediction = ModelPredictor.ensemble_prediction(self.model, feature_df)
+        
+        # print(get_features)
+        # print(feature_df)
+        
+        # count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
+        # count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
+        # res_drift = 1 if count_dup > 200 else 0
+        
+        res_drift = self.detect_drift(feature_df[get_features])
+        
+        # if LOG_TIME:
+        #     run_time = round((time.time() - start_time) * 1000, 0)
+        #     logging.info(f"drift takes {run_time} ms")
+        #     start_time = time.time()
+        
         if type_ == 0:
             # prediction = prediction[:, 1]
             prediction = self.model.predict_proba(feature_df)[:, 1]
@@ -139,8 +164,11 @@ class ModelPredictor:
         # logging.info(prediction)
         # res_drift = self.detect_drift(feature_df[get_features])
 
-        # run_time = round((time.time() - start_time) * 1000, 0)
-        # logging.info(f"prediction takes {run_time} ms")
+        if LOG_TIME:
+            run_time = round((time.time() - start_time) * 1000, 0)
+            logging.info(f"prediction takes {run_time} ms")
+            start_time = time.time()
+        
         return {
             "id": data.id,
             "predictions": list(prediction),
@@ -194,18 +222,18 @@ class PredictorApi:
         pass
 
     def run(self, port):
-        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers = 6)
+        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers = 8)
 
 default_config_path = (
         AppPath.MODEL_CONFIG_DIR
-        / ProblemConst.PHASE1
+        / ProblemConst.PHASE2
         / ProblemConst.PROB1
         / "model-1.yaml"
     ).as_posix()
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--config-path1", type=str, default=default_config_path)
-parser.add_argument("--config-path2", type=str, default=default_config_path)
+parser.add_argument("--config-path1", type=str, default='data/model_config/phase-2/prob-1/phase-2_prob-1_cv.yaml')
+parser.add_argument("--config-path2", type=str, default='data/model_config/phase-2/prob-2/phase-2_prob-2_lgbm__.yaml')
 parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
 parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
 args = parser.parse_args()

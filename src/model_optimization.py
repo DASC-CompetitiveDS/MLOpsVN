@@ -11,6 +11,9 @@ import warnings
 import mlflow
 import lightgbm as lgb
 from optuna.integration.lightgbm import LightGBMTunerCV
+from pandas.api.types import is_string_dtype
+from pandas.api.types import is_numeric_dtype
+
 warnings.filterwarnings("ignore")
 
 
@@ -142,12 +145,16 @@ def get_best_params_cv(train_data, type_model, task, cat_features, is_class_weig
     unique_n = len(np.unique(y_train))
     
     if type_model == 'lgbm':
+        if not is_numeric_dtype(y_train):
+            y_train = y_train.astype("category").cat.codes
+
         dtrain = lgb.Dataset(X_train, label=y_train)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"
         
         objective = "binary" if unique_n == 2 else "multiclass"
         objective = objective if task == 'clf' else "regression"
+        # num_class = unique_n if objective is 'multiclass' else 1
 
         params = {
         "objective": objective,
@@ -156,13 +163,16 @@ def get_best_params_cv(train_data, type_model, task, cat_features, is_class_weig
         "boosting_type": "gbdt",
         # "learning_rate": 0.01
         }
+        
+        if objective == 'multiclass':
+            params.update({'num_class': unique_n})
 
         tuner = LightGBMTunerCV(
             time_budget=train_time, params=params,
             train_set=dtrain, categorical_feature=cat_features,
             nfold=5, stratified=True,
             num_boost_round=10000, early_stopping_rounds=300,
-            return_cvbooster=True, optuna_seed = 123, seed = 123
+            return_cvbooster=True, optuna_seed = 123, seed = 123,
         )
         
         tuner.run()
