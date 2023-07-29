@@ -1,6 +1,8 @@
 import argparse
 import logging
 import pickle
+import json
+import os
 
 import pandas as pd
 import numpy as np
@@ -8,6 +10,7 @@ from sklearn.model_selection import train_test_split
 
 from problem_config import ProblemConfig, ProblemConst, get_prob_config
 from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import LabelEncoder  
 from specific_data_processing import ProcessData
 
 class TargetEncoder:
@@ -83,7 +86,48 @@ class RawDataProcessor:
         return X_train_final
     
     @staticmethod
-    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool):
+    def split_train_validation(training_data, prob_config, target_col, drift):
+        train_x, test_x, train_y, test_y = train_test_split(
+            training_data.drop(columns=[target_col]),
+            training_data[target_col],
+            test_size=prob_config.test_size,
+            random_state=prob_config.random_state,
+            stratify=training_data[target_col]
+        )
+        train_x = train_x.reset_index(drop=True)
+        test_x = test_x.reset_index(drop=True)
+        train_y = train_y.reset_index(drop=False).drop(columns=['index'])
+        test_y = test_y.reset_index(drop=False).drop(columns=['index'])
+
+        train_x.to_parquet(prob_config.train_x_path if drift is False else prob_config.train_x_drift_path, index=False)
+        train_y.to_parquet(prob_config.train_y_path if drift is False else prob_config.train_y_drift_path, index=False)
+        test_x.to_parquet(prob_config.test_x_path if drift is False else prob_config.test_x_drift_path, index=False)
+        test_y.to_parquet(prob_config.test_y_path if drift is False else prob_config.test_y_drift_path, index=False)
+    
+        
+    @staticmethod  
+    def split_stratified_kfold(training_data, prob_config, target_col):
+        X = training_data.drop(columns=[target_col])
+        y = training_data[target_col].values
+
+        skf = StratifiedKFold(n_splits=5, random_state=prob_config.random_state, shuffle=True)   
+
+        for i, (train_index, test_index) in enumerate(skf.split(X, y)):
+            X_train = X.iloc[train_index].reset_index(drop=True)
+            X_valid = X.iloc[test_index].reset_index(drop=True)
+
+            y_train = pd.DataFrame(y[train_index], columns=[target_col])
+            y_valid = pd.DataFrame(y[test_index], columns=[target_col])
+
+            X_train.to_parquet(f"{str(prob_config.train_data_path)}/train_x_{i}.parquet", index=False)
+            y_train.to_parquet(f"{str(prob_config.train_data_path)}/train_y_{i}.parquet", index=False)
+            X_valid.to_parquet(f"{str(prob_config.train_data_path)}/test_x_{i}.parquet", index=False)
+            y_valid.to_parquet(f"{str(prob_config.train_data_path)}/test_y_{i}.parquet", index=False)
+    
+    
+
+    @staticmethod
+    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, kfold: bool):
         logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
         training_data = pd.read_parquet(prob_config.raw_data_path)
         target_col = prob_config.target_col  
@@ -107,55 +151,37 @@ class RawDataProcessor:
             training_data, category_index = RawDataProcessor.build_category_features(
                 training_data, [col for col in training_data.columns.tolist() if training_data[col].dtype == 'O' and target_col != col]
             )
-
-        train_x, test_x, train_y, test_y = train_test_split(
-            training_data.drop(columns=[target_col]),
-            training_data[target_col],
-            test_size=prob_config.test_size,
-            random_state=prob_config.random_state,
-            stratify=training_data[target_col]
-        )
-        train_x = train_x.reset_index(drop=True)
-        test_x = test_x.reset_index(drop=True)
-        train_y = train_y.reset_index(drop=False).drop(columns=['index'])
-        test_y = test_y.reset_index(drop=False).drop(columns=['index'])
-
         category_index_path = prob_config.category_index_path if specific_handle is False else prob_config.category_index_path_specific_handling
         with open(category_index_path, "wb") as f:
             pickle.dump(category_index, f)
         
-        train_x.to_parquet(prob_config.train_x_path if drift is False else prob_config.train_x_drift_path, index=False)
-        train_y.to_parquet(prob_config.train_y_path if drift is False else prob_config.train_y_drift_path, index=False)
-        test_x.to_parquet(prob_config.test_x_path if drift is False else prob_config.test_x_drift_path, index=False)
-        test_y.to_parquet(prob_config.test_y_path if drift is False else prob_config.test_y_drift_path, index=False)
+        if kfold is False:
+            RawDataProcessor.split_train_validation(training_data, prob_config, target_col, drift)
+        else:
+            RawDataProcessor.split_stratified_kfold(training_data, prob_config, target_col)
+       
         logging.info("finished process_raw_data")
 
-    
-    @staticmethod  
-    def stratified_kfold(training_data, prob_config: ProblemConfig):
-        X = training_data
-        y = training_data[prob_config.target_col]
-        skf = StratifiedKFold(n_splits=prob_config.n_folds)
-        list_subsets = []
-        
-        for i, (train_index, test_index) in enumerate(skf.split(X, y)):
-            train, dev = X.iloc[train_index], X.iloc[test_index]
-            list_subsets.append([train, dev])
-            
-        return list_subsets
-
     @staticmethod
-    def load_train_data(prob_config: ProblemConfig, drift: bool):
-        train_x_path = prob_config.train_x_path if drift is False else prob_config.train_x_drift_path
-        train_y_path = prob_config.train_y_path if drift is False else prob_config.train_y_drift_path
+    def load_train_data(prob_config: ProblemConfig, drift: bool, kfold: int):
+        if kfold == -1:
+            train_x_path = prob_config.train_x_path if drift is False else prob_config.train_x_drift_path
+            train_y_path = prob_config.train_y_path if drift is False else prob_config.train_y_drift_path
+        else:
+            train_x_path = f"{str(prob_config.train_data_path)}/train_x_{kfold}.parquet"
+            train_y_path = f"{str(prob_config.train_data_path)}/train_y_{kfold}.parquet"
         train_x = pd.read_parquet(train_x_path)
         train_y = pd.read_parquet(train_y_path)
         return train_x, train_y[prob_config.target_col]
 
     @staticmethod
-    def load_test_data(prob_config: ProblemConfig, drift: bool):
-        dev_x_path = prob_config.test_x_path if drift is False else prob_config.test_x_drift_path
-        dev_y_path = prob_config.test_y_path if drift is False else prob_config.test_y_drift_path
+    def load_test_data(prob_config: ProblemConfig, drift: bool, kfold: int):
+        if kfold == -1:
+            dev_x_path = prob_config.test_x_path if drift is False else prob_config.test_x_drift_path
+            dev_y_path = prob_config.test_y_path if drift is False else prob_config.test_y_drift_path
+        else:
+            dev_x_path = f"{str(prob_config.train_data_path)}/test_x_{kfold}.parquet"
+            dev_y_path = f"{str(prob_config.train_data_path)}/test_y_{kfold}.parquet"
         dev_x = pd.read_parquet(dev_x_path)
         dev_y = pd.read_parquet(dev_y_path)
         return dev_x, dev_y[prob_config.target_col]
@@ -183,6 +209,33 @@ class RawDataProcessor:
         test_y = train_y
         
         return train_x, train_y, test_x, test_y    
+    
+    @staticmethod
+    def load_dict_predict(prob_config: ProblemConfig, list_model, feature_columns):
+        link_data_test = prob_config.captured_data_dir
+        captured_x = pd.DataFrame()
+        for file_path in os.listdir(link_data_test):
+            if 'parquet' not in file_path:
+                continue
+            captured_data = pd.read_parquet(f'{link_data_test}/{file_path}')
+            count_dup = captured_data[feature_columns].groupby(feature_columns).agg(count_unique = ('feature1', 'count'))
+            count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
+            captured_x = pd.concat([captured_x, captured_data])
+        captured_x = captured_x[feature_columns].reset_index(drop=True)
+        cup = captured_x.groupby(feature_columns).agg(count_unique = ('feature1', 'count')).reset_index().drop(columns=['count_unique'])
+        list_pred_proba = []
+        for model in list_model:
+            pred = model.predict_proba(cup.values)
+            list_pred_proba.append(pred)
+        list_pred_proba = np.mean(list_pred_proba, axis=0)
+        class_ = list_model[0].classes_
+        list_pred_proba = class_[np.argmax(list_pred_proba, axis=1)]
+        dict_predict = {}
+        save_cup = cup.values
+        for idx in range(len(save_cup)):
+            dict_predict[tuple(save_cup[idx])] = list_pred_proba[idx]
+        return dict_predict
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -194,10 +247,11 @@ if __name__ == "__main__":
     parser.add_argument("--drift", type=lambda x: (str(x).lower() == "true"), default=False, 
                          help='Tạo dữ liệu drift')
     parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--kfold", type=lambda x: (str(x).lower() == "true"), default=False)
     args = parser.parse_args()
 
     prob_config = get_prob_config(args.phase_id, args.prob_id)
     if args.remove_dup not in ['abs', 'rel', 'None']:
         print("The available removing duplicate records methods: [abs, rel, None]")
     else:
-        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.specific_handle, args.drift)
+        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.specific_handle, args.drift, args.kfold)

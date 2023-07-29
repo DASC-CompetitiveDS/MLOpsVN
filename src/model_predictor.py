@@ -4,6 +4,7 @@ import os
 import random
 import time
 import json
+import numpy as np
 
 import mlflow
 import pandas as pd
@@ -17,6 +18,7 @@ from raw_data_processor import RawDataProcessor
 from utils import AppConfig, AppPath
 from specific_data_processing import ProcessData
 
+import threading
 import uvloop
 import asyncio
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
@@ -56,11 +58,34 @@ class ModelPredictor:
         self.model = mlflow.sklearn.load_model(model_uri)
         self.model_drift = mlflow.sklearn.load_model(model_drift)
 
+        # if self.prob_config.prob_id == "prob-2":
+        #     list_model = []
+        #     for i in range(5):
+        #         model_uri = os.path.join(
+        #             "models:/", f"phase-2_prob-2_lgbm_fold{i}", "3"
+        #         )
+        #         input_schema = mlflow.models.Model.load(model_uri).get_input_schema().to_dict()
+        #         model = mlflow.sklearn.load_model(model_uri)
+        #         list_model.append(model)
+            
+        #     self.dict_predict = RawDataProcessor.load_dict_predict(self.prob_config, list_model, [each['name'] for each in self.input_schema])
+        # else:
+        #     self.dict_predict = None
+        # logging.info(self.dict_predict)
+
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
         # return random.choice([0, 1])
         return 1
 
+    # @staticmethod
+    # async def ensemble_prediction(model, input_data):
+    #     loop = asyncio.get_event_loop()
+    #     tasks = [loop.create_task(model.predict_proba(input_data)) for _ in range(5)]
+    #     results = await asyncio.gather(*tasks)
+    #     logging.info(results)
+    #     return np.mean(results, axis=0)
+    
     def predict(self, data: Data, type_: int):
         # start_time = time.time()
 
@@ -93,14 +118,24 @@ class ModelPredictor:
             )
             
         get_features = [each['name'] for each in self.input_schema]
-        
-        count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
+        feature_df = feature_df[get_features]
+        count_dup = feature_df.groupby(get_features).agg(count_unique = ('feature1', 'count'))
         count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
         res_drift = 1 if count_dup > 100 else 0
+        # prediction = ModelPredictor.ensemble_prediction(self.model, feature_df)
         if type_ == 0:
-            prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
+            # prediction = prediction[:, 1]
+            prediction = self.model.predict_proba(feature_df)[:, 1]
         else:
-            prediction = self.model.predict(feature_df[get_features])
+            # class_ = self.model.classes_
+            # prediction = class_[np.argmax(prediction, axis=1)]
+            prediction = self.model.predict(feature_df)
+            
+            # prediction = []
+            # feature_df = feature_df.applymap(lambda x: float(int(x)) if round(x - int(x), 5) == 0 and abs(x) >= 1 else round(x, 6))
+            # save_np = feature_df.values
+            # for idx in range(len(save_np)):
+            #     prediction.append(self.dict_predict[tuple(save_np[idx])])
         # logging.info(prediction)
         # res_drift = self.detect_drift(feature_df[get_features])
 
@@ -108,7 +143,7 @@ class ModelPredictor:
         # logging.info(f"prediction takes {run_time} ms")
         return {
             "id": data.id,
-            "predictions": prediction.tolist(),
+            "predictions": list(prediction),
             "drift": res_drift
         }
 

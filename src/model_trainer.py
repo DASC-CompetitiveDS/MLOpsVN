@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore")
 
 class ModelTrainer:
     @staticmethod
-    def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, drift_training=False, specific_handle=False, add_captured_data=False):
+    def train_model(args, prob_config: ProblemConfig, type_model, time_tuning, task, class_weight, drift_training=False, specific_handle=False, kfold=None, add_captured_data=False):
         logging.info("start train_model")
         # init mlflow
         if args.model_name is None:
@@ -35,7 +35,8 @@ class ModelTrainer:
                         +f"{'' if add_captured_data is False else '_add_captured_data'}"\
                         +f"{'' if args.cross_validation is False else '_cv'}"\
                         +f"{'_specific_handle' if specific_handle is True else ''}"\
-                        +f"{'_drift' if drift_training is True else ''}"
+                        +f"{'_drift' if drift_training is True else ''}"\
+                        +f"{f'_fold{kfold}' if kfold != -1 else ''}"
         else:
             model_name = f"{prob_config.phase_id}_{prob_config.prob_id}_{args.model_name}"
                         
@@ -43,7 +44,7 @@ class ModelTrainer:
         mlflow.set_experiment(model_name)
 
         # load train data
-        train_x, train_y = RawDataProcessor.load_train_data(prob_config, drift_training)
+        train_x, train_y = RawDataProcessor.load_train_data(prob_config, drift_training, kfold)
         logging.info(f"loaded {len(train_x)} samples")
 
         if add_captured_data:
@@ -57,7 +58,7 @@ class ModelTrainer:
 
         category_features = list(category_features.keys())
             
-        test_x, test_y = RawDataProcessor.load_test_data(prob_config, drift_training)  
+        test_x, test_y = RawDataProcessor.load_test_data(prob_config, drift_training, kfold)  
         
         if args.cross_validation:
             train_x, train_y, test_x, test_y = RawDataProcessor.combine_train_val(train_x, train_y, test_x, test_y)
@@ -141,6 +142,7 @@ if __name__ == "__main__":
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--model_name", type=str, default=None)
     parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--kfold", type=int, default=-1)
 
     
     args = parser.parse_args()
@@ -155,5 +157,5 @@ if __name__ == "__main__":
         print("The available task: [clf, reg]")
     else:
         ModelTrainer.train_model(args,
-            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, drift_training=args.drift_training, specific_handle=args.specific_handle, add_captured_data=args.add_captured_data
+            prob_config, args.type_model, args.time_tuning, args.task, args.class_weight, drift_training=args.drift_training, specific_handle=args.specific_handle, kfold=args.kfold, add_captured_data=args.add_captured_data
         )
