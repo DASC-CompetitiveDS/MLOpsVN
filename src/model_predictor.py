@@ -81,7 +81,7 @@ class ModelPredictor:
         # return random.choice([0, 1])
         count_dup = feature_df.groupby(feature_df.columns.to_list()).agg(count_unique = ('feature1', 'count'))
         count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
-        res_drift = 1 if count_dup > 100 else 0
+        res_drift = 1 if count_dup > 400 else 0
         
         return res_drift
     
@@ -135,8 +135,8 @@ class ModelPredictor:
         
         # pool = Pool(processes=1)              # Start a worker processes.
         # res_drift_task = pool.apply_async(self.detect_drift, [feature_df[get_features]])
-        
-        res_drift = self.detect_drift(feature_df[get_features])
+        feature_df = feature_df[get_features]
+        res_drift = self.detect_drift(feature_df)
         
         if LOG_TIME:
             run_time = round((time.time() - start_time) * 1000, 0)
@@ -170,7 +170,7 @@ class ModelPredictor:
         
         return {
             "id": data.id,
-            "predictions": list(prediction),
+            "predictions": prediction.tolist(),
             "drift": res_drift
         }
 
