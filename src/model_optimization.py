@@ -153,7 +153,7 @@ def get_best_params_cv(train_data, type_model, task, cat_features, is_class_weig
         "metric": eval_metric,
         "verbosity": -1,
         "boosting_type": "gbdt",
-        # "learning_rate": 0.01
+        "learning_rate": args.learning_rate
         }
         
         if objective == 'multiclass':

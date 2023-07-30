@@ -17,6 +17,8 @@ from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
 from utils import AppConfig, AppPath
 from specific_data_processing import ProcessData
+from multiprocessing import Pool
+# from threading import Thread
 
 import threading
 import uvloop
@@ -111,10 +113,10 @@ class ModelPredictor:
             category_index=self.category_index,
         )
         
-        # if LOG_TIME:
-        #     run_time = round((time.time() - start_time) * 1000, 0)
-        #     logging.info(f"process data takes {run_time} ms")
-        #     start_time = time.time()
+        if LOG_TIME:
+            run_time = round((time.time() - start_time) * 1000, 0)
+            logging.info(f"process data takes {run_time} ms")
+            start_time = time.time()
         
         #======================= CAPTURE DATA =============#
         if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
@@ -123,13 +125,23 @@ class ModelPredictor:
             )
             
         get_features = [each['name'] for each in self.input_schema]
-        feature_df = feature_df[get_features]
-        res_drift = self.detect_drift(feature_df)
         
-        # if LOG_TIME:
-        #     run_time = round((time.time() - start_time) * 1000, 0)
-        #     logging.info(f"drift takes {run_time} ms")
-        #     start_time = time.time()
+        # print(get_features)
+        # print(feature_df)
+        
+        # count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
+        # count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
+        # res_drift = 1 if count_dup > 200 else 0
+        
+        # pool = Pool(processes=1)              # Start a worker processes.
+        # res_drift_task = pool.apply_async(self.detect_drift, [feature_df[get_features]])
+        
+        res_drift = self.detect_drift(feature_df[get_features])
+        
+        if LOG_TIME:
+            run_time = round((time.time() - start_time) * 1000, 0)
+            logging.info(f"drift takes {run_time} ms")
+            start_time = time.time()
         
         if type_ == 0:
             # prediction = prediction[:, 1]
@@ -151,6 +163,10 @@ class ModelPredictor:
             run_time = round((time.time() - start_time) * 1000, 0)
             logging.info(f"prediction takes {run_time} ms")
             start_time = time.time()
+        
+        # res_drift.wait()
+        
+        # res_drift = res_drift_task.get(timeout=3)
         
         return {
             "id": data.id,
@@ -205,7 +221,7 @@ class PredictorApi:
         pass
 
     def run(self, port):
-        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers = 8)
+        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers=16)
 
 default_config_path = (
         AppPath.MODEL_CONFIG_DIR
