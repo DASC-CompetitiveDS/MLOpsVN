@@ -83,16 +83,6 @@ class ModelPredictor:
         
         return res_drift
     
-        return 1
-
-    # @staticmethod
-    # async def ensemble_prediction(model, input_data):
-    #     loop = asyncio.get_event_loop()
-    #     tasks = [loop.create_task(model.predict_proba(input_data)) for _ in range(5)]
-    #     results = await asyncio.gather(*tasks)
-    #     logging.info(results)
-    #     return np.mean(results, axis=0)
-    
     def predict(self, data: Data, type_: int):
         # logging.info(f"Running on os.getpid(): {os.getpid()}")
         
@@ -133,15 +123,8 @@ class ModelPredictor:
             )
             
         get_features = [each['name'] for each in self.input_schema]
-        
-        # print(get_features)
-        # print(feature_df)
-        
-        # count_dup = feature_df[get_features].groupby(get_features).agg(count_unique = ('feature1', 'count'))
-        # count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
-        # res_drift = 1 if count_dup > 200 else 0
-        
-        res_drift = self.detect_drift(feature_df[get_features])
+        feature_df = feature_df[get_features]
+        res_drift = self.detect_drift(feature_df)
         
         # if LOG_TIME:
         #     run_time = round((time.time() - start_time) * 1000, 0)

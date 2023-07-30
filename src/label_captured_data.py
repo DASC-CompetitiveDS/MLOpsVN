@@ -108,12 +108,14 @@ def label_captured_data_model(prob_config: ProblemConfig, model_name: str):
         captured_data = pd.read_parquet(file_path)
         captured_x = pd.concat([captured_x, captured_data])
     
+    feature_columns = [each['name'] for each in input_schema]
     try:
-        captured_x = captured_x[[each['name'] for each in input_schema]]
+        captured_x = captured_x[feature_columns]
     except:
         logging.info("Some input features of the used model don't exist in captured data")
         return
     
+    captured_x = captured_x.groupby(feature_columns).agg(count_unique = ('feature1', 'count')).reset_index()[feature_columns]
     approx_label = model.predict(captured_x)
     approx_label_df = pd.DataFrame(approx_label, columns=[prob_config.target_col])
 
