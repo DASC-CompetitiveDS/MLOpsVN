@@ -69,7 +69,7 @@ class ModelPredictor:
         return res_drift
     
     def predict(self, data: Data, type_: int):
-        logging.info(f"Running on os.getpid(): {os.getpid()}")
+        # logging.info(f"Running on os.getpid(): {os.getpid()}")
         
         if LOG_TIME:
             start_time = time.time()
@@ -195,7 +195,7 @@ class PredictorApi:
         pass
 
     def run(self, port):
-        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers=8)
+        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers=16)
 
 default_config_path = (
         AppPath.MODEL_CONFIG_DIR
