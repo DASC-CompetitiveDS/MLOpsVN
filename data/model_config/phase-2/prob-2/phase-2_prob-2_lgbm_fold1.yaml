@@ -1,0 +1,4 @@
+model_name: phase-2_prob-2_lgbm_fold1
+model_version: 3
+phase_id: phase-2
+prob_id: prob-2

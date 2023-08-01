@@ -1,4 +1,4 @@
 model_name: phase-2_prob-2_lgbm_add_captured_data_cv
-model_version: 1
+model_version: 2
 phase_id: phase-2
 prob_id: prob-2

@@ -7,6 +7,7 @@ import json
 
 import mlflow
 import pandas as pd
+import numpy as np
 import uvicorn
 import yaml
 from fastapi import FastAPI, Request
@@ -58,6 +59,12 @@ class ModelPredictor:
         self.input_schema = mlflow.models.Model.load(model_uri).get_input_schema().to_dict()
         self.model = mlflow.sklearn.load_model(model_uri)
         self.model_drift = mlflow.sklearn.load_model(model_drift)
+        
+        self.dtypes_dict = {}
+        self.dtypes_dict.update({col:'f' for col in self.prob_config.feature_configs['numeric_columns']})
+        self.dtypes_dict.update({col:'O' for col in self.prob_config.feature_configs['category_columns']})
+        self.dtypes_dict.update({self.prob_config.feature_configs['target_column']:'O'})
+        
 
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
@@ -75,14 +82,22 @@ class ModelPredictor:
             start_time = time.time()
 
         # preprocess
-        raw_df = pd.DataFrame(data.rows, columns=data.columns)
+        raw_df = pd.DataFrame(data.rows, columns=data.columns, dtype='O')
+        raw_df[self.prob_config.numerical_cols] = raw_df[self.prob_config.numerical_cols].astype('float')
+        
+        # raw_df = pd.DataFrame(columns=data.columns).astype(self.dtypes_dict)
+        # raw_df.loc[len(raw_df)] = data.rows
 
+        # dtype_ = [(c, self.dtypes_dict[c]) for c in data.columns]
+        # # print(dtype_)
+        # raw_df = pd.DataFrame(np.array([tuple(row) for row in data.rows], dtype=dtype_))
+        
         #======================= CAPTURE DATA =============#
 
-        if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
-            ModelPredictor.save_request_data(
-                raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
-            )
+        # if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
+        #     ModelPredictor.save_request_data(
+        #         raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
+        #     )
 
         if self.specific_handle:
             raw_df = ProcessData.HANDLE_DATA[[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}']](raw_df, phase='test')
@@ -171,14 +186,14 @@ class PredictorApi:
         def root():
             return {"message": "hello"}
 
-        @self.app.post("/phase-2/prob-1/predict")
+        @self.app.post("/phase-3/prob-1/predict")
         def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictor1.predict(data, 0)
             self._log_response(response)
             return response
         
-        @self.app.post("/phase-2/prob-2/predict")
+        @self.app.post("/phase-3/prob-2/predict")
         def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictor2.predict(data, 1)
