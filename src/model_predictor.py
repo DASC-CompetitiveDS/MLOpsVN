@@ -95,7 +95,7 @@ class ModelPredictor:
         # return random.choice([0, 1])
         count_dup = feature_df.groupby(feature_df.columns.to_list()).agg(count_unique = ('feature1', 'count'))
         count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
-        res_drift = 1 if count_dup > 400 else 0
+        res_drift = 1 if count_dup < 6 else 0
         
         return res_drift
     
