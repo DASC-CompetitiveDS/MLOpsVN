@@ -1,0 +1,4 @@
+model_name: phase-3_prob-2_lgbm_cv_lr-0.5
+model_version: 2
+phase_id: phase-3
+prob_id: prob-2

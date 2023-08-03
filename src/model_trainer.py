@@ -144,6 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--kfold", type=int, default=-1)
     parser.add_argument("--learning_rate", type=float, default=0.1)
+    parser.add_argument("--early_stopping_rounds", type=int, default=300)
 
     
     args = parser.parse_args()
