@@ -161,7 +161,8 @@ def get_best_params_cv(train_data, type_model, task, cat_features, is_class_weig
         "metric": eval_metric,
         "verbosity": -1,
         "boosting_type": "gbdt",
-        "learning_rate": args.learning_rate
+        "learning_rate": args.learning_rate,
+        # "early_stopping_rounds": args.early_stopping_rounds
         }
         
         if objective == 'multiclass':
@@ -171,8 +172,8 @@ def get_best_params_cv(train_data, type_model, task, cat_features, is_class_weig
             time_budget=train_time, params=params,
             train_set=dtrain, categorical_feature=cat_features,
             nfold=5, stratified=True,
-            num_boost_round=10000, early_stopping_rounds=300,
-            return_cvbooster=True, optuna_seed = 123, seed = 123,
+            num_boost_round=10000, early_stopping_rounds=args.early_stopping_rounds,
+            return_cvbooster=True, optuna_seed = 123, seed = 42,
         )
         
         tuner.run()
