@@ -197,14 +197,14 @@ class PredictorApi:
         def root():
             return {"message": "hello"}
 
-        @self.app.post("/phase-2/prob-1/predict")
+        @self.app.post("/phase-3/prob-1/predict")
         def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictor1.predict(data, 0)
             self._log_response(response)
             return response
         
-        @self.app.post("/phase-2/prob-2/predict")
+        @self.app.post("/phase-3/prob-2/predict")
         def predict(data: Data, request: Request):
             self._log_request(request)
             response = self.predictor2.predict(data, 1)

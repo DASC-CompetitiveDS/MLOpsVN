@@ -20,4 +20,5 @@ def data_processing_phase2_prob2(data, phase="train"):
 
 class ProcessData:
     HANDLE_DATA = {}
+    HANDLE_DATA["phase-2_prob-1"] = data_processing_phase2_prob2
     HANDLE_DATA["phase-2_prob-2"] = data_processing_phase2_prob2
