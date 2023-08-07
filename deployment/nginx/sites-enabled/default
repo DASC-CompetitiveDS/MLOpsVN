@@ -1,6 +1,6 @@
 server {
-        listen 5050 default_server;
-        listen [::]:5050 default_server;
+        listen 5040 default_server;
+        listen [::]:5040 default_server;
 
         # listen 443 ssl default_server;
         # listen [::]:443 ssl default_server;
