@@ -3,6 +3,13 @@ teardown:
 	make predictor_down
 	make mlflow_down
 
+# nginx
+nginx_up:
+	docker-compose -f deployment/nginx/docker-compose.yml up -d
+
+nginx_down
+	docker-compose -f deployment/nginx/docker-compose.yml down
+
 # mlflow
 mlflow_up:
 	docker-compose -f deployment/mlflow/docker-compose.yml up -d
