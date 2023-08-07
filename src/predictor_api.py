@@ -5,11 +5,12 @@ import os
 from fastapi import FastAPI, Request
 from pandas.util import hash_pandas_object
 
-from model import ModelPredictor, Data
+from model import Model
+from data import Data
 
 
 class PredictorApi:
-    def __init__(self, predictor: ModelPredictor, path: str):
+    def __init__(self, predictor: Model, path: str):
         self.predictor = predictor
 
         self.app = FastAPI()
@@ -31,4 +32,4 @@ class PredictorApi:
         pass
 
     def run(self, file, port):
-        uvicorn.run(f"{file}:model.app", host="0.0.0.0", port=port, workers=8)
+        uvicorn.run(f"{file}:predictor.app", host="0.0.0.0", port=port, workers=8)

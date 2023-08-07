@@ -1,4 +1,3 @@
-from pydantic import BaseModel
 from time import time
 import pandas as pd
 import logging
@@ -10,16 +9,12 @@ from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
 from utils.config import AppConfig
 from specific_data_processing import ProcessData
+from data import Data
 
 LOG_TIME = False
 
-class Data(BaseModel):
-    id: str
-    rows: list
-    columns: list
 
-
-class ModelPredictor:
+class Model:
     def __init__(self, config_file_path, specific_handle):
         with open(config_file_path, "r") as f:
             self.config = yaml.safe_load(f)

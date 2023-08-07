@@ -16,7 +16,7 @@ predictor_up:
 	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv.yaml /phase-3/prob-1/predict 5002 False
 
 predictor_down:
-	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml down
+	docker-compose -f deployment/model_predictor/docker-compose.yml down
 
 predictor_restart:
 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml stop
