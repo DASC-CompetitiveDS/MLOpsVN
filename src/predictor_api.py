@@ -18,7 +18,7 @@ class PredictorApi:
         @self.app.post(path)
         def predict(data: Data, request: Request):
             self._log_request(request)
-            response = self.predictor.predict(data, 0)
+            response = self.predictor.predict(data)
             self._log_response(response)
             return response
 

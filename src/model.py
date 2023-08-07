@@ -56,21 +56,11 @@ class Model:
         self.PREDICT_CONSTANT = PREDICT_CONSTANT
         self.DETECT_DRIFT = DETECT_DRIFT
         
-
-        # if self.prob_config.prob_id == "prob-2":
-        #     list_model = []
-        #     for i in range(5):
-        #         model_uri = os.path.join(
-        #             "models:/", f"phase-2_prob-2_lgbm_fold{i}", "3"
-        #         )
-        #         input_schema = mlflow.models.Model.load(model_uri).get_input_schema().to_dict()
-        #         model = mlflow.sklearn.load_model(model_uri)
-        #         list_model.append(model)
-            
-        #     self.dict_predict = RawDataProcessor.load_dict_predict(self.prob_config, list_model, [each['name'] for each in self.input_schema])
-        # else:
-        #     self.dict_predict = None
-        # logging.info(self.dict_predict)
+        ### vá tạm ###
+        if self.config["prob_id"] == 'prob-1':
+            self.type_=0
+        elif self.config["prob_id"] == 'prob-2':
+            self.type_=1
 
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
@@ -89,7 +79,7 @@ class Model:
             
         return prediction
     
-    def predict(self, data: Data, type_: int):
+    def predict(self, data: Data):
         # logging.info(f"Running on os.getpid(): {os.getpid()}")
         
         if LOG_TIME:
@@ -152,9 +142,9 @@ class Model:
             start_time = time.time()
         
         if self.PREDICT_CONSTANT:
-            prediction = self.predict_constant(feature_df[get_features], type_=type_)
+            prediction = self.predict_constant(feature_df[get_features], type_=self.type_)
         else:
-            if type_ == 0:
+            if self.type_ == 0:
                 prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
             else:
                 prediction = self.model.predict(feature_df[get_features])
