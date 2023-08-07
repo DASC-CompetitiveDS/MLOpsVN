@@ -21,13 +21,8 @@ CAPTURE_DATA = False
 PROCESS_DATA = True
 
 
-class Data(BaseModel):
-    id: str
-    rows: list
-    columns: list
 
-
-class ModelPredictor:
+class Model:
     def __init__(self, config_file_path, specific_handle, PREDICT_CONSTANT=False, DETECT_DRIFT=True):
         with open(config_file_path, "r") as f:
             self.config = yaml.safe_load(f)
