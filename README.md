@@ -12,6 +12,7 @@ This repository is the sample solution for MLOps Marathon 2023.
     # Install docker-compose version v2.6.1
     pip install -r requirements.txt
     make mlflow_up
+    make nginx_up
     ```
 
 2.  Train model
