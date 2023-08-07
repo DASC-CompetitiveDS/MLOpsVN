@@ -86,11 +86,11 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.test_y_drift_path = prob_config.train_data_path / "test_y_drift.parquet"
 
     # get properties of ml-problem
-    feature_configs = load_feature_configs_dict(prob_config.feature_config_path)
-    prob_config.target_col = feature_configs.get("target_column")
-    prob_config.categorical_cols = feature_configs.get("category_columns")
-    prob_config.numerical_cols = feature_configs.get("numeric_columns")
-    prob_config.ml_type = feature_configs.get("ml_type")
+    prob_config.feature_configs = load_feature_configs_dict(prob_config.feature_config_path)
+    prob_config.target_col = prob_config.feature_configs.get("target_column")
+    prob_config.categorical_cols = prob_config.feature_configs.get("category_columns")
+    prob_config.numerical_cols = prob_config.feature_configs.get("numeric_columns")
+    prob_config.ml_type = prob_config.feature_configs.get("ml_type")
     
     #create ml models params
     prob_config.params_tuning = {}

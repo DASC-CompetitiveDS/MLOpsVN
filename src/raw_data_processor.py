@@ -51,6 +51,7 @@ class RawDataProcessor:
             return raw_df
 
         apply_df = raw_df.copy()
+        apply_df
         for col in categorical_cols:
             apply_df[col] = apply_df[col].astype("category")
             apply_df[col] = pd.Categorical(
