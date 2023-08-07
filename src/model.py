@@ -1,32 +1,19 @@
-import argparse
-import logging
-import os
-import random
-import time
-import json
-import numpy as np
-
-import mlflow
+from time import time
 import pandas as pd
 import numpy as np
 import uvicorn
+import logging
+import mlflow
 import yaml
-from fastapi import FastAPI, Request
-from pandas.util import hash_pandas_object
-from pydantic import BaseModel
+import os
+
 from problem_config import ProblemConst, create_prob_config
 from raw_data_processor import RawDataProcessor
-from utils import AppConfig, AppPath
+from utils.config import AppConfig
 from specific_data_processing import ProcessData
-from multiprocessing import Pool
-# from threading import Thread
+from data import Data
+from utils.utils import save_request_data
 
-import threading
-import uvloop
-import asyncio
-asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-
-PREDICTOR_API_PORT = 8000
 LOG_TIME = False
 PREDICT_CONSTANT = False
 DETECT_DRIFT = True
@@ -121,7 +108,7 @@ class ModelPredictor:
 
         if CAPTURE_DATA:
             if len(os.listdir(f"{self.prob_config.captured_data_dir}/raw/")) < 100:
-                ModelPredictor.save_request_data(
+                save_request_data(
                     raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
                 )
 
@@ -148,11 +135,11 @@ class ModelPredictor:
         #======================= CAPTURE DATA =============#
         if CAPTURE_DATA:
             # if len(os.listdir(self.prob_config.captured_data_dir)) < 100:
-            #     ModelPredictor.save_request_data(
+            #     save_request_data(
             #         feature_df, self.prob_config.captured_data_dir, data.id
             #     )
 
-            ModelPredictor.save_request_data(
+            save_request_data(
                 feature_df, self.prob_config.captured_data_dir, data.id
             )
 
@@ -193,74 +180,3 @@ class ModelPredictor:
             "predictions": prediction.tolist(),
             "drift": res_drift
         }
-
-    @staticmethod
-    def save_request_data(feature_df: pd.DataFrame, captured_data_dir, data_id: str):
-        os.makedirs(captured_data_dir, exist_ok=True)
-        if data_id.strip():
-            filename = data_id
-        else:
-            filename = hash_pandas_object(feature_df).sum()
-        output_file_path = os.path.join(captured_data_dir, f"{filename}.parquet")
-        feature_df.to_parquet(output_file_path, index=False)
-        return output_file_path
-
-
-class PredictorApi:
-    def __init__(self, predictor1: ModelPredictor, predictor2: ModelPredictor):
-        self.predictor1 = predictor1
-        self.predictor2 = predictor2
-
-        self.app = FastAPI()
-
-        @self.app.get("/")
-        def root():
-            return {"message": "hello"}
-
-        @self.app.post("/phase-3/prob-1/predict")
-        def predict(data: Data, request: Request):
-            self._log_request(request)
-            response = self.predictor1.predict(data, 0)
-            self._log_response(response)
-            return response
-        
-        @self.app.post("/phase-3/prob-2/predict")
-        def predict(data: Data, request: Request):
-            self._log_request(request)
-            response = self.predictor2.predict(data, 1)
-            self._log_response(response)
-            return response
-
-
-    @staticmethod
-    def _log_request(request: Request):
-        pass
-
-    @staticmethod
-    def _log_response(response: dict):
-        pass
-
-    def run(self, port):
-        uvicorn.run("model_predictor:api.app", host="0.0.0.0", port=port, workers=16)
-
-default_config_path = (
-        AppPath.MODEL_CONFIG_DIR
-        / ProblemConst.PHASE2
-        / ProblemConst.PROB1
-        / "model-1.yaml"
-    ).as_posix()
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--config-path1", type=str, default='data/model_config/phase-2/prob-1/phase-2_prob-1_cv.yaml')
-parser.add_argument("--config-path2", type=str, default='data/model_config/phase-2/prob-2/phase-2_prob-2_lgbm__.yaml')
-parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
-parser.add_argument("--port", type=int, default=PREDICTOR_API_PORT)
-args = parser.parse_args()
-
-predictor1 = ModelPredictor(config_file_path=args.config_path1, specific_handle=args.specific_handle)
-predictor2 = ModelPredictor(config_file_path=args.config_path2, specific_handle=args.specific_handle)
-
-api = PredictorApi(predictor1, predictor2)
-
-if __name__ == "__main__":
-    api.run(port=args.port)
