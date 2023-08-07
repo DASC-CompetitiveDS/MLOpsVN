@@ -11,15 +11,11 @@ server {
 
         server_name _;
 
-        location /phase-3/ {
-                proxy_pass http://localhost:5041/phase-3/;
-        }
-
-	location /phase-3/prob-1/predictt {
+	location /phase-3/prob-1/predict {
 		proxy_pass http://localhost:5001/phase-3/prob-1/predict;
 	}
 
-	location /phase-3/prob-2/predictt {
+	location /phase-3/prob-2/predict {
                 proxy_pass http://localhost:5002/phase-3/prob-2/predict;
         }
 
@@ -27,7 +23,4 @@ server {
         	proxy_pass http://localhost:5000/;
     	}
 
-	location / {
-		proxy_pass http://localhost:8888/;
-	}
 }
