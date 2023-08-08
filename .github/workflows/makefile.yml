@@ -1,0 +1,24 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Run predictor_up
+      run: make predictor_up
+
+    - name: Run predictor_curl
+      run: make predictor_curl
+
+    - name: Run predictor_down
+      run: make predictor_down
