@@ -16,7 +16,7 @@ parser.add_argument("--config-path", type=str, default='data/model_config/phase-
 parser.add_argument("--path", type=str, default='/phase-3/prob-1/predict')
 parser.add_argument("--port", type=int, default=8000)
 parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
-parser.add_argument("--mlflow_uri", type=lambda x: (str(x).lower() == "true"), default='localhost')
+parser.add_argument("--mlflow_uri", type=str, default='default')
 
 args = parser.parse_args()
 

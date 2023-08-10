@@ -21,15 +21,16 @@ PROCESS_DATA = True
 
 
 class Model:
-    def __init__(self, config_file_path, specific_handle, PREDICT_CONSTANT=False, DETECT_DRIFT=True, MLFLOW_URI='default'):
+    def __init__(self, config_file_path, specific_handle, PREDICT_CONSTANT=False, DETECT_DRIFT=True, mlflow_uri='default'):
         with open(config_file_path, "r") as f:
             self.config = yaml.safe_load(f)
         logging.info(f"model-config: {self.config}")
 
-        if MLFLOW_URI == 'default':
+        logging.info(mlflow_uri)
+        if mlflow_uri == 'default':
             mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         else:
-            mlflow.set_tracking_uri(MLFLOW_URI)
+            mlflow.set_tracking_uri(mlflow_uri)
 
         self.prob_config = create_prob_config(
             self.config["phase_id"], self.config["prob_id"]
