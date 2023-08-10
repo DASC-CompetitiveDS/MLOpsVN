@@ -13,9 +13,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
 
     - name: Run predictor_up
       env:
