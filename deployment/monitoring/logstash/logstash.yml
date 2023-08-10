@@ -1,0 +1,3 @@
+#monitoring.elasticsearch.hosts: http://localhost:9200
+#monitoring.elasticsearch.username: elastic
+#monitoring.elasticsearch.password: mlops2023

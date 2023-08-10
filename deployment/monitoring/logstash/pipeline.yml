@@ -1,0 +1,25 @@
+input {
+  beats {
+    port => 5000
+    type => syslog
+  }
+}
+
+filter {
+  if [type] == "syslog" {
+    grok {
+      match => { "message" => "%{IPORHOST:remote_addr} - %{DATA:remote_user}- \[%{HTTPDATE:time_local}\] %{WORD:http_method} %{URIPATH:uri} HTTP/%{NUMBER:http_version} %{NUMBER:response_code} %{NUMBER:body_bytes_sent} %{DATA:referrer} %{DATA:user_agent} %{NUMBER:request_time:float} %{NUMBER:upstream_connect_time:float} %{NUMBER:upstream_header_time:float} %{NUMBER:upstream_response_time:float}" }
+    }
+  }
+}
+
+output {
+  if [type] == "syslog" {
+    elasticsearch { 
+      hosts => ["elasticsearch:9200"] 
+      user => elastic
+      password => mlops2023
+      index => "nginx-%{+YYYY.MM.dd}"
+    }
+  }
+}

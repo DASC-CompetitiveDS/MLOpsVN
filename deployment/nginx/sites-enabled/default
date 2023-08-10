@@ -22,5 +22,7 @@ server {
         location /mlflow/ {
         	proxy_pass http://localhost:5000/;
     	}
-
+	location / {
+		proxy_pass http://localhost:5601/;
+	}
 }
