@@ -29,10 +29,12 @@ def data_processing_phase3(data, phase="train"):
             continue
         unique_values = data[col].unique().tolist()
         unique_values.remove('0')
-        unique_values.remove('255')
         if col == "feature10":
+            unique_values.remove('252')
             unique_values.remove('29')
             unique_values.remove('60')
+        else:
+            unique_values.remove('255')
         data[col] = data[col].replace({each: 'other' for each in unique_values})
     return data
 
@@ -40,5 +42,5 @@ class ProcessData:
     HANDLE_DATA = {}
     HANDLE_DATA["phase-2_prob-1"] = data_processing_phase2_prob2
     HANDLE_DATA["phase-2_prob-2"] = data_processing_phase2_prob2
-    HANDLE_DATA["phase-3_prob-1"] = data_processing_phase2_prob2
-    HANDLE_DATA["phase-3_prob-2"] = data_processing_phase2_prob2
+    HANDLE_DATA["phase-3_prob-1"] = data_processing_phase3
+    HANDLE_DATA["phase-3_prob-2"] = data_processing_phase3

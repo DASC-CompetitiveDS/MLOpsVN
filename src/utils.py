@@ -14,6 +14,8 @@ class AppPath:
     DATA_DIR = ROOT_DIR / "data"
     # store raw data
     RAW_DATA_DIR = DATA_DIR / "raw_data"
+    #store external data
+    EXTERNAL_DATA_DIR = DATA_DIR / "external_data"
     # store preprocessed training data
     TRAIN_DATA_DIR = DATA_DIR / "train_data"
     # store configs for deployments

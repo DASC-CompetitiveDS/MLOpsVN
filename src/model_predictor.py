@@ -126,7 +126,7 @@ class ModelPredictor:
                 )
 
         if self.specific_handle:
-            raw_df = ProcessData.HANDLE_DATA[[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}']](raw_df, phase='test')
+            raw_df = ProcessData.HANDLE_DATA[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}'](raw_df, phase='test')
             cate_cols = [col for col in raw_df.columns.tolist() if raw_df[col].dtype == 'O']
         else:
             cate_cols = self.prob_config.categorical_cols
