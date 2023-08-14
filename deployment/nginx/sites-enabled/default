@@ -12,17 +12,22 @@ server {
         server_name _;
 
 	location /phase-3/prob-1/predict {
+		proxy_cache my_cache;
 		proxy_pass http://localhost:5001/phase-3/prob-1/predict;
 	}
 
 	location /phase-3/prob-2/predict {
+		proxy_cache my_cache;
                 proxy_pass http://localhost:5002/phase-3/prob-2/predict;
         }
 
         location /mlflow/ {
         	proxy_pass http://localhost:5000/;
     	}
-	location / {
-		proxy_pass http://localhost:5601/;
+#	location /kibana/ {
+	location ~ /kibana {
+#	location / {
+		#proxy_pass http://localhost:5601/;
+		proxy_pass http://localhost:5601;
 	}
 }
