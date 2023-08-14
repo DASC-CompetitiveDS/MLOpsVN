@@ -15,20 +15,22 @@ from data import Data
 from utils.utils import save_request_data
 
 LOG_TIME = False
-PREDICT_CONSTANT = False
-DETECT_DRIFT = True
 CAPTURE_DATA = False
 PROCESS_DATA = True
 
 
 
 class Model:
-    def __init__(self, config_file_path, specific_handle, PREDICT_CONSTANT=False, DETECT_DRIFT=True):
+    def __init__(self, config_file_path, specific_handle, PREDICT_CONSTANT=False, DETECT_DRIFT=True, mlflow_uri='default'):
         with open(config_file_path, "r") as f:
             self.config = yaml.safe_load(f)
         logging.info(f"model-config: {self.config}")
 
-        mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
+        logging.info(mlflow_uri)
+        if mlflow_uri == 'default':
+            mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
+        else:
+            mlflow.set_tracking_uri(mlflow_uri)
 
         self.prob_config = create_prob_config(
             self.config["phase_id"], self.config["prob_id"]

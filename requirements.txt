@@ -17,3 +17,5 @@ seaborn==0.12.2
 matplotlib==3.7.1
 plotly==5.15.0
 uvloop==0.17.0
+
+dvc==3.10.1
