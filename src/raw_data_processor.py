@@ -149,8 +149,10 @@ class RawDataProcessor:
         if drift is False:
             if remove_dup == 'rel':
                 training_data = RawDataProcessor.remove_dup_relatively_records(training_data.copy(), target_col)
+                logging.info(training_data.shape)
             elif remove_dup == 'abs':
                 training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, order_reg)
+                logging.info(training_data.shape)
         else:
             training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, 1)
         
