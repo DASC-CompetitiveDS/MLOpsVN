@@ -8,5 +8,3 @@ filebeat:
 output:
   logstash:
     hosts: ["logstash:5000"]
-    
-  

@@ -3,6 +3,10 @@ input {
     port => 5000
     type => syslog
   }
+  beats {
+    port => 6000
+    type => service
+  }
 }
 
 filter {
@@ -25,4 +29,13 @@ output {
         index => "nginx-%{+YYYY.MM.dd}"
       }
   }
+  if [type] == "service" {
+      elasticsearch {
+        hosts => ["elasticsearch:9200"]
+        user => elastic
+        password => mlops2023
+        index => "service-%{+YYYY.MM.dd}"
+      }
+  }
+
 }
