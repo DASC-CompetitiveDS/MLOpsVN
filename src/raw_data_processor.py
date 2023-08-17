@@ -155,7 +155,7 @@ class RawDataProcessor:
             training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, 1)
         
         if specific_handle is True:
-            training_data = ProcessData.HANDLE_DATA[f'{prob_config.phase_id}_{prob_config.prob_id}'](training_data)
+            training_data = ProcessData.HANDLE_DATA[f'{prob_config.phase_id}_{prob_config.prob_id}'](training_data, target_col)
 
         if specific_handle is False:
             training_data, category_index = RawDataProcessor.build_category_features(

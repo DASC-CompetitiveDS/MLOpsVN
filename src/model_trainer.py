@@ -17,7 +17,8 @@ from problem_config import (
 )
 from raw_data_processor import RawDataProcessor
 from model_optimization import get_best_params, model_training, get_best_params_cv
-from utils import AppConfig, get_confusion_matrix, get_feature_importance
+from utils.config import AppConfig
+from utils.utils import get_confusion_matrix, get_feature_importance
 
 import warnings
 warnings.filterwarnings("ignore")
