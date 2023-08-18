@@ -16,6 +16,10 @@ from pandas.api.types import is_numeric_dtype
 
 warnings.filterwarnings("ignore")
 
+# def add_captured_data_cv_func(x, y, real_label_arr):
+#     # cross validation khi add_captured, toan bo du lieu pseudo-label day ve train
+#     yeild 
+
 
 def objective(trial, train_data, valid_data, type_model, task, params_tuning, cat_features, is_class_weight, model_name):
     mlflow.start_run(run_name=f"{model_name}_tuning_{trial.number}")
