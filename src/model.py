@@ -12,7 +12,7 @@ from raw_data_processor import RawDataProcessor
 from utils.config import AppConfig
 from specific_data_processing import ProcessData
 from data import Data
-from utils.utils import save_request_data
+from utils.utils import save_request_data, handle_prediction
 
 LOG_TIME = False
 CAPTURE_DATA = False
@@ -100,7 +100,7 @@ class Model:
                 )
 
         if self.specific_handle:
-            raw_df = ProcessData.HANDLE_DATA[[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}']](raw_df, phase='test')
+            raw_df = ProcessData.HANDLE_DATA[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}'](raw_df, phase='test')
             cate_cols = [col for col in raw_df.columns.tolist() if raw_df[col].dtype == 'O']
         else:
             cate_cols = self.prob_config.categorical_cols
@@ -150,6 +150,7 @@ class Model:
                 prediction = self.model.predict_proba(feature_df[get_features])[:, 1]
             else:
                 prediction = self.model.predict(feature_df[get_features])
+
         # logging.info(prediction)
         # res_drift = self.detect_drift(feature_df[get_features])
 

@@ -2,6 +2,7 @@ from sklearn.metrics import confusion_matrix
 from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
 
     
 def get_confusion_matrix(y_true, y_pred):
@@ -36,3 +37,12 @@ def save_request_data(feature_df: pd.DataFrame, captured_data_dir, data_id: str)
     output_file_path = os.path.join(captured_data_dir, f"{filename}.parquet")
     feature_df.to_parquet(output_file_path, index=False)
     return output_file_path
+
+def handle_prediction(label_pred, proba_pred):
+    res_pred = []
+    for index, each in enumerate(label_pred):
+        if each == "Normal" and proba_pred[index] <= 0.6:
+            res_pred.append("Denial of Service")
+            continue
+        res_pred.append(each)
+    return np.array(res_pred)

@@ -11,6 +11,8 @@ class AppPath:
     RAW_DATA_DIR = DATA_DIR / "raw_data"
     # store preprocessed training data
     TRAIN_DATA_DIR = DATA_DIR / "train_data"
+    # store external data
+    EXTERNAL_DATA_DIR = DATA_DIR / "external_data"
     # store configs for deployments
     MODEL_CONFIG_DIR = DATA_DIR / "model_config"
     # store captured data
@@ -19,6 +21,7 @@ class AppPath:
 
 AppPath.RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
 AppPath.TRAIN_DATA_DIR.mkdir(parents=True, exist_ok=True)
+AppPath.EXTERNAL_DATA_DIR.mkdir(parents=True, exist_ok=True)
 AppPath.MODEL_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 AppPath.CAPTURED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
