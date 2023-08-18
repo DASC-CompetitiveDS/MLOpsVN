@@ -1,6 +1,6 @@
-# MLOps Marathon 2023 - Sample solution
+# MLOps Marathon 2023 - Momentum solution
 
-This repository is the sample solution for MLOps Marathon 2023.
+This repository is the Momentum solution for MLOps Marathon 2023.
 
 ## Quickstart
 
