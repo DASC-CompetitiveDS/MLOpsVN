@@ -1,0 +1,32 @@
+version: '3.7'
+services:
+  minio:
+    image: minio/minio
+    container_name: minio
+    # build:
+    #   context: minio/
+    ports:
+      - "9009:9000"
+      - "9100:9001"
+    volumes:
+      #- ./storage:/data
+      - /home/$USER/data:/data
+      # - /home/$USER/data/capture_data:/data/capture_data
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+      # MINIO_ACCESS_KEY: bv1wT0MRfLrF0S2B97e2
+      # MINIO_SECRET_KEY: uYbyohd0EUUk6liWKxyvuD0nA3CoNEwDaCK4WV8C
+    entrypoint: sh
+    command: -c "
+      mkdir -p /data/captured_data;
+      mkdir -p /data/curl;
+      mkdir -p /data/model_config;
+      mkdir -p /data/raw_data;
+      mkdir -p /data/train_data;
+      mkdir -p /data/mock_test_data;
+      mkdir -p /data/external_data;
+      mkdir -p /data/predictor_config;
+      minio server --console-address ":9001" /data;
+      "
+  

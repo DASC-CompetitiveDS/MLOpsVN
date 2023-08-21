@@ -1,21 +1,44 @@
 #!/bin/bash
 
-IMAGE_NAME=$1
+cmd=$1
+
+# constants
+IMAGE_NAME="model_predictor"
 IMAGE_TAG=$(git describe --always)
 
+if [[ -z "$cmd" ]]; then
+    echo "Missing command"
+    exit 1
+fi
 
 run_predictor() {
-    model_path=$2
-    path=$3
+    model_config_path1=$1
+    model_config_path2=$2
+    specific_handle=$3
     port=$4
-    specific_handle=$5
-    mlflow_uri=$6
-    
-    echo "check $path"
+    if [[ -z "$model_config_path1" ]]; then
+        echo "Missing model_config_path1"
+        exit 1
+    fi
+    if [[ -z "$port" ]]; then
+        echo "Missing port"
+        exit 1
+    fi
+
     docker build -f deployment/model_predictor/Dockerfile -t $IMAGE_NAME:$IMAGE_TAG .
     IMAGE_NAME=$IMAGE_NAME IMAGE_TAG=$IMAGE_TAG \
-        MODEL_CONFIG_PATH=$model_path PREDICT_PATH=$path PORT=$port SPECIFIC_HANDLE=$specific_handle MLFLOW_URI=$mlflow_uri\
-        docker-compose -f deployment/model_predictor/docker-compose.yml -p ${IMAGE_NAME} up -d --remove-orphans
+        MODEL_CONFIG_PATH1=$model_config_path1 MODEL_CONFIG_PATH2=$model_config_path2 SPECIFIC_HANDLE=$specific_handle PORT=$port \
+        docker-compose -f deployment/model_predictor/docker-compose.yml up -d
 }
 
-run_predictor "$@"
+shift
+
+case $cmd in
+run_predictor)
+    run_predictor "$@"
+    ;;
+*)
+    echo -n "Unknown command: $cmd"
+    exit 1
+    ;;
+esac

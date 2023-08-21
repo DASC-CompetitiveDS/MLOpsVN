@@ -1,5 +1,5 @@
 import json
-from utils.config import AppPath
+from utils import AppPath
 
 
 class ProblemConst:
