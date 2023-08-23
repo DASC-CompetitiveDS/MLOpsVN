@@ -14,7 +14,7 @@ nginx_down:
 # wait 2s to kill exited container
 minio_up:
 	docker-compose -f deployment/minio/docker-compose.yml up -d
-	sleep 2 
+	sleep 2
 	docker-compose -f deployment/minio/docker-compose.yml rm -f
 
 minio_down:
