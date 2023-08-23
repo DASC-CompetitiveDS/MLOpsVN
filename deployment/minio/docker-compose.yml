@@ -15,18 +15,41 @@ services:
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: password
-      # MINIO_ACCESS_KEY: bv1wT0MRfLrF0S2B97e2
-      # MINIO_SECRET_KEY: uYbyohd0EUUk6liWKxyvuD0nA3CoNEwDaCK4WV8C
-    entrypoint: sh
-    command: -c "
-      mkdir -p /data/captured_data;
-      mkdir -p /data/curl;
-      mkdir -p /data/model_config;
-      mkdir -p /data/raw_data;
-      mkdir -p /data/train_data;
-      mkdir -p /data/mock_test_data;
-      mkdir -p /data/external_data;
-      mkdir -p /data/predictor_config;
-      minio server --console-address ":9001" /data;
+      MINIO_ACCESS_KEY: erI3dhufbstReEDeQI2X
+      MINIO_SECRET_KEY: ucEBzYPb3RqS5r8OE4rc96oS8QKMa8NBIBeL1Biv
+    command: server --console-address ":9001" /data
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add data http://minio:9000 erI3dhufbstReEDeQI2X ucEBzYPb3RqS5r8OE4rc96oS8QKMa8NBIBeL1Biv;
+
+      /usr/bin/mc mb -p data/captured-data;
+      /usr/bin/mc policy public data/captured-data;
+
+      /usr/bin/mc mb -p data/curl;
+      /usr/bin/mc policy public data/curl;
+
+      /usr/bin/mc mb -p data/mock-test-data;
+      /usr/bin/mc policy public data/mock-test-data;
+
+      /usr/bin/mc mb -p data/model-config;
+      /usr/bin/mc policy public data/model-config;
+
+      /usr/bin/mc mb -p data/predictor-config;
+      /usr/bin/mc policy public data/predictor-config;
+
+      /usr/bin/mc mb -p data/raw-data;
+      /usr/bin/mc policy public data/raw-data;
+
+      /usr/bin/mc mb -p data/train-data;
+      /usr/bin/mc policy public data/train-data;
+
+      /usr/bin/mc mb -p data/work-data;
+      /usr/bin/mc policy public data/work-data;
+
+      exit 0;
       "
-  
