@@ -16,19 +16,14 @@ run_predictor() {
     model_config_path2=$2
     specific_handle=$3
     port=$4
-    if [[ -z "$model_config_path1" ]]; then
-        echo "Missing model_config_path1"
-        exit 1
-    fi
-    if [[ -z "$port" ]]; then
-        echo "Missing port"
-        exit 1
-    fi
-
+    predictor_config_path=$5
+    mlflow_uri=$6
+    
+    echo "check $path"
     docker build -f deployment/model_predictor/Dockerfile -t $IMAGE_NAME:$IMAGE_TAG .
     IMAGE_NAME=$IMAGE_NAME IMAGE_TAG=$IMAGE_TAG \
-        MODEL_CONFIG_PATH1=$model_config_path1 MODEL_CONFIG_PATH2=$model_config_path2 SPECIFIC_HANDLE=$specific_handle PORT=$port \
-        docker-compose -f deployment/model_predictor/docker-compose.yml up -d
+        MODEL_CONFIG_PATH=$model_path PREDICT_PATH=$path PORT=$port PREDICTOR_CONFIG_PATH=$predictor_config_path MLFLOW_URI=$mlflow_uri\
+        docker-compose -f deployment/model_predictor/docker-compose.yml -p ${IMAGE_NAME} up -d --remove-orphans
 }
 
 shift

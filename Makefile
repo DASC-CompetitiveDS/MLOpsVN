@@ -29,7 +29,8 @@ mlflow_down:
 
 # predictor
 predictor_up:
-	bash deployment/deploy.sh run_predictor data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_lr-0.5.yaml data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml False 5041
+	bash deployment/deploy.sh model1 data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_lr-0.5.yaml /phase-3/prob-1/predict 5001 data/predictor_config/default_log.yaml $(MLFLOW_URI)
+	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml /phase-3/prob-2/predict 5002 data/predictor_config/default_log.yaml $(MLFLOW_URI)
 
 predictor_down:
 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml down
@@ -39,6 +40,13 @@ predictor_restart:
 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml start
 
 predictor_curl:
-	curl -X POST http://localhost:5041/phase-2/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-2/prob-1/payload-1.json
-	curl -X POST http://localhost:5041/phase-2/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-2/prob-1/payload-2.json
-	curl -X POST http://localhost:5041/phase-2/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-2/prob-2/payload-1.json
+	curl -X POST http://localhost:5001/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
+	curl -X POST http://localhost:5002/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
+
+predictor_curl_ip:
+	curl -X POST http://20.205.210.58:5040/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
+	curl -X POST http://20.205.210.58:5040/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
+
+predictor_curl_8000:
+	curl -X POST http://localhost:8000/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
+	curl -X POST http://localhost:8000/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json

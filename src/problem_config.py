@@ -64,6 +64,9 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.raw_data_path = (
         AppPath.RAW_DATA_DIR / f"{phase_id}" / f"{prob_id}" / "raw_train.parquet"
     )
+    prob_config.external_data_path = (
+        AppPath.EXTERNAL_DATA_DIR / f"{phase_id}" / f"{prob_id}" / "external_data.parquet"
+    )
     prob_config.feature_config_path = (
         AppPath.RAW_DATA_DIR / f"{phase_id}" / f"{prob_id}" / "features_config.json"
     )

@@ -138,21 +138,26 @@ class RawDataProcessor:
     
 
     @staticmethod
-    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, kfold: bool):
+    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, external_data: bool, kfold: bool):
         logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
         training_data = pd.read_parquet(prob_config.raw_data_path)
         target_col = prob_config.target_col  
         
+        if external_data:
+            external_data_train = pd.read_parquet(prob_config.external_data_path)
+            training_data = pd.concat([training_data, external_data_train[training_data.columns.tolist()]]).reset_index(drop=True)
         if drift is False:
             if remove_dup == 'rel':
                 training_data = RawDataProcessor.remove_dup_relatively_records(training_data.copy(), target_col)
+                logging.info(training_data.shape)
             elif remove_dup == 'abs':
                 training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, order_reg)
+                logging.info(training_data.shape)
         else:
             training_data = RawDataProcessor.remove_dup_absolutely_records(training_data.copy(), target_col, 1)
         
         if specific_handle is True:
-            training_data = ProcessData.HANDLE_DATA[f'{prob_config.phase_id}_{prob_config.prob_id}'](training_data)
+            training_data = ProcessData.HANDLE_DATA[f'{prob_config.phase_id}_{prob_config.prob_id}'](training_data, target_col)
 
         if specific_handle is False:
             training_data, category_index = RawDataProcessor.build_category_features(
@@ -258,6 +263,7 @@ if __name__ == "__main__":
     parser.add_argument("--drift", type=lambda x: (str(x).lower() == "true"), default=False, 
                          help='Tạo dữ liệu drift')
     parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--external_data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--kfold", type=lambda x: (str(x).lower() == "true"), default=False)
     args = parser.parse_args()
 
@@ -265,4 +271,4 @@ if __name__ == "__main__":
     if args.remove_dup not in ['abs', 'rel', 'None']:
         print("The available removing duplicate records methods: [abs, rel, None]")
     else:
-        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.specific_handle, args.drift, args.kfold)
+        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.specific_handle, args.drift, args.external_data, args.kfold)
