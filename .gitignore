@@ -195,4 +195,5 @@ poetry.toml
 .idea
 
 mlruns
+storage
 # data/model_config/*
