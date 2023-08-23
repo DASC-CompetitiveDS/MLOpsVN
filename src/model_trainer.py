@@ -17,7 +17,8 @@ from problem_config import (
 )
 from raw_data_processor import RawDataProcessor
 from model_optimization import get_best_params, model_training, get_best_params_cv
-from utils import AppConfig, get_confusion_matrix, get_feature_importance
+from utils.config import AppConfig
+from utils.utils import get_confusion_matrix, get_feature_importance
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -53,9 +54,7 @@ class ModelTrainer:
             train_y = pd.concat([train_y, captured_y])
             logging.info(f"added {len(captured_x)} captured samples")
         
-        with open(prob_config.category_index_path, "rb") as file:
-            category_features = pickle.load(file)
-
+        category_features = RawDataProcessor.load_category_index(prob_config, specific_handle)
         category_features = list(category_features.keys())
             
         test_x, test_y = RawDataProcessor.load_test_data(prob_config, drift_training, kfold)  

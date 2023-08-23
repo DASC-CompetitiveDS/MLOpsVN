@@ -1,0 +1,6 @@
+specific_handle: True
+PREDICT_CONSTANT: False
+DETECT_DRIFT: True
+LOG_TIME: False
+CAPTURE_DATA: False
+PROCESS_DATA: True

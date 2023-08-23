@@ -7,6 +7,7 @@ from pandas.util import hash_pandas_object
 
 from model import Model
 from data import Data
+from fastapi import BackgroundTasks
 
 
 class PredictorApi:

@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from problem_config import ProblemConfig, ProblemConst, get_prob_config
-from utils import AppConfig
+from utils.config import AppConfig
 
 def label_captured_data_cluster(prob_config: ProblemConfig, ratio_cluster: int):
     train_x = pd.read_parquet(prob_config.train_x_path)
