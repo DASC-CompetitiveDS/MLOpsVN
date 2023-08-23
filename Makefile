@@ -7,10 +7,20 @@ teardown:
 
 # nginx
 nginx_up:
-	docker-compose -f deployment/nginx/docker-compose.yml up -d
+	docker-compose -f deployment/nginx/docker-compose.yml up -d 
 
 nginx_down:
 	docker-compose -f deployment/nginx/docker-compose.yml down
+
+# minio
+# wait 2s to kill exited container
+minio_up:
+	docker-compose -f deployment/minio/docker-compose.yml up -d
+	sleep 2
+	docker-compose -f deployment/minio/docker-compose.yml rm -f
+
+minio_down:
+	docker-compose -f deployment/minio/docker-compose.yml up -d
 
 # mlflow
 mlflow_up:
