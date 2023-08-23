@@ -16,7 +16,7 @@ from problem_config import (
     get_prob_config,
 )
 from raw_data_processor import RawDataProcessor
-from model_optimization import get_best_params, model_training, get_best_params_cv
+from model_optimization import get_best_params, model_training, get_best_params_cv, AddCapturedStratifiedKFold
 from utils.config import AppConfig
 from utils.utils import get_confusion_matrix, get_feature_importance
 
@@ -48,19 +48,32 @@ class ModelTrainer:
         train_x, train_y = RawDataProcessor.load_train_data(prob_config, drift_training, kfold)
         logging.info(f"loaded {len(train_x)} samples")
 
+        # index indicates which sample is real, which is pseudo
+        real_label_array = np.ones(len(train_x))
+        
         if add_captured_data:
             captured_x, captured_y = RawDataProcessor.load_capture_data(prob_config)
             train_x = pd.concat([train_x, captured_x])
             train_y = pd.concat([train_y, captured_y])
+            
+            real_label_array = np.concatenate((real_label_array, np.zeros(len(captured_x))))
             logging.info(f"added {len(captured_x)} captured samples")
-        
+            
+            
         category_features = RawDataProcessor.load_category_index(prob_config, specific_handle)
         category_features = list(category_features.keys())
             
-        test_x, test_y = RawDataProcessor.load_test_data(prob_config, drift_training, kfold)  
+        test_x, test_y = RawDataProcessor.load_test_data(prob_config, drift_training, kfold)        
         
         if args.cross_validation:
+            real_label_array = np.concatenate((real_label_array, np.ones(len(test_x))))
             train_x, train_y, test_x, test_y = RawDataProcessor.combine_train_val(train_x, train_y, test_x, test_y)
+
+        if add_captured_data:
+            cv_generator = AddCapturedStratifiedKFold(n_folds=5)
+            train_x, train_y = cv_generator.move_captured_to_last(train_x, train_y, origin_real_label_array=real_label_array)
+        else:
+            cv_generator = None
         
         # get params
         if time_tuning != 0:
@@ -70,7 +83,8 @@ class ModelTrainer:
                                             class_weight, time_tuning, idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}", model_name=model_name, args=args)
             else:
                 model_params, num_boost_round = get_best_params_cv((train_x, train_y), type_model, task, category_features, class_weight, time_tuning, 
-                                                  idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}", model_name=model_name, args=args)
+                                                  idx_phase=f"{prob_config.phase_id}_{prob_config.prob_id}", model_name=model_name, args=args, cv_generator=cv_generator)
+                
         else:
             model_params = prob_config.params_fix[type_model]
         
@@ -123,8 +137,8 @@ class ModelTrainer:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--phase-id", type=str, default=ProblemConst.PHASE2)
-    parser.add_argument("--prob-id", type=str, default=ProblemConst.PROB1)
+    parser.add_argument("--phase-id", type=str, default=ProblemConst.PHASE3)
+    parser.add_argument("--prob-id", type=str, default=ProblemConst.PROB2)
 
     parser.add_argument("--task", type=str, default='clf', 
                         help="Tác vụ thực hiện ['clf', 'reg']")
@@ -137,10 +151,10 @@ if __name__ == "__main__":
     parser.add_argument("--drift_training", type=lambda x: (str(x).lower() == "true"), default=False, 
                         help='sử dụng dữ liệu drift')
     parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
-    parser.add_argument("--add_captured_data", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--add_captured_data", type=lambda x: (str(x).lower() == "true"), default=True)
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--model_name", type=str, default=None)
-    parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=True)
     parser.add_argument("--kfold", type=int, default=-1)
     parser.add_argument("--learning_rate", type=float, default=0.1)
     parser.add_argument("--early_stopping_rounds", type=int, default=300)
