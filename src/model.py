@@ -14,7 +14,7 @@ from specific_data_processing import ProcessData
 from data import Data
 from utils.utils import save_request_data, handle_prediction
 import concurrent.futures
-from minio.folder_getter import get_data
+from storage_utils.folder_getter import get_data
 
 
 class Model:
@@ -29,12 +29,12 @@ class Model:
             mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         else:
             mlflow.set_tracking_uri(os.path.join(server, 'mlflow/'))
-            get_data(minio_server=server, dst_path='data')
+            get_data(minio_server=server.replace('http://', ''), dst_path='data')
             
-
         self.prob_config = create_prob_config(
             self.config["phase_id"], self.config["prob_id"]
         )
+        
         self.specific_handle = self.predictor_config['specific_handle']
         # load category_index
         self.category_index = RawDataProcessor.load_category_index(self.prob_config, self.specific_handle)

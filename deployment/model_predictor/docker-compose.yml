@@ -3,7 +3,7 @@ services:
   model_predictor:
     #container_name: ${IMAGE_NAME}
     image: ${IMAGE_NAME}:${IMAGE_TAG}
-    restart: always #on-failure
+    # restart: always #on-failure
     volumes:
       - ../../data/raw_data:/sample_solution/data/raw_data
       - ../../data/train_data:/sample_solution/data/train_data

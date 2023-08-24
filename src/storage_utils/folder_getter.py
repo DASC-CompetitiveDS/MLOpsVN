@@ -5,7 +5,7 @@ import pathlib
 from tqdm import tqdm
 
 
-def get_data(minio_server, src_path, dst_path, is_path_include_bucket=True):
+def get_data(minio_server, src_path=None, dst_path='data', is_path_include_bucket=True, verbose=0):
     client = Minio(
             minio_server,
             access_key="QhHnuvs0GQeZZeUvGWph",
@@ -27,7 +27,11 @@ def get_data(minio_server, src_path, dst_path, is_path_include_bucket=True):
         
     objects = list(client.list_objects("data", recursive=True, prefix=src_path))
     for i, obj in tqdm(enumerate(objects), total=len(objects)):
-        client.fget_object("data", obj.object_name, os.path.join(dst_path, obj.object_name))
+        try:
+            client.fget_object("data", obj.object_name, os.path.join(dst_path, obj.object_name))
+        except Exception as e:
+            if verbose == 0:
+                pass
         
 
 if __name__ == "__main__":
@@ -37,9 +41,11 @@ if __name__ == "__main__":
     parser.add_argument("--dst_path", type=str, default='data')
     parser.add_argument("--is_path_include_bucket", type=lambda x: (str(x).lower() == "true"), default=True, 
                         help='nếu True, vị trí đầu tiên trong đường dẫn là bucket')
+    parser.add_argument("--verbose", type=int, default=0, 
+                        help='0: hide error')
     
     args = parser.parse_args()
     
     print(args)
     
-    get_data(args.minio_server, args.src_path, args.dst_path, args.is_path_include_bucket)
+    get_data(args.minio_server, args.src_path, args.dst_path, args.is_path_include_bucket, args.verbose)

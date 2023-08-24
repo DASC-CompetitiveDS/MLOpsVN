@@ -38,7 +38,8 @@ predictor_up:
 	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml /phase-3/prob-2/predict 5002 data/predictor_config/default_log.yaml $(SERVER)
 
 predictor_down:
-	docker-compose -f deployment/model_predictor/docker-compose.yml down
+	PORT=5001 docker-compose -f deployment/model_predictor/docker-compose.yml down
+	PORT=5002 docker-compose -f deployment/model_predictor/docker-compose.yml down
 
 predictor_restart:
 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml stop
