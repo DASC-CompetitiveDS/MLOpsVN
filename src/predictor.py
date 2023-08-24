@@ -8,14 +8,11 @@ from model import Model
 from data import Data
 from predictor_api import PredictorApi
 
-PREDICT_CONSTANT = False
-DETECT_DRIFT = True
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config-path", type=str, default='data/model_config/phase-3/prob-1/phase-3_prob-1_cv.yaml')
 parser.add_argument("--path", type=str, default='/phase-3/prob-1/predict')
 parser.add_argument("--port", type=int, default=8000)
-# parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
 parser.add_argument("--mlflow_uri", type=str, default='default')
 parser.add_argument("--predictor-config-path", type=str, default='data/predict_config/default.yaml')
 

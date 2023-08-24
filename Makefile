@@ -19,6 +19,9 @@ minio_up:
 	sleep 2
 	docker-compose -f deployment/minio/docker-compose.yml rm -f
 
+# minio_up:
+# 	docker-compose -f deployment/minio/docker-compose.yml up -d
+
 minio_down:
 	docker-compose -f deployment/minio/docker-compose.yml up -d
 
