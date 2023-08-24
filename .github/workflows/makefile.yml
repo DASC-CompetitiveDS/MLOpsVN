@@ -16,8 +16,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Run download_data
-      run: python3 src/storage_utils/folder_getter.py --minio_server $SERVER --dst_path data
+    - name: Prepare
+      run: |
+        pip install -r requirements.txt
+        python3 src/storage_utils/folder_getter.py --minio_server $SERVER --dst_path data
     
     - name: Run predictor_up
       run: make predictor_up SERVER=$SERVER
