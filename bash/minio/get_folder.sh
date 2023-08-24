@@ -1,1 +1,1 @@
-python3 src/minio/folder_getter.py
+python3 src/storage_utils/folder_getter.py

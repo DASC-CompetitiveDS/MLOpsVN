@@ -29,7 +29,7 @@ class Model:
             mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         else:
             mlflow.set_tracking_uri(os.path.join(server, 'mlflow/'))
-            get_data(minio_server=server.replace('http://', ''), dst_path='data')
+            # get_data(minio_server=server.replace('http://', ''), dst_path='data')
             
         self.prob_config = create_prob_config(
             self.config["phase_id"], self.config["prob_id"]

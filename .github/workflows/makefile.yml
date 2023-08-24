@@ -10,13 +10,16 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      SERVER: ${{ secrets.SERVER }}
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Run download_data
+      run: python3 src/minio/folder_getter.py --minio_server $SERVER --dst_path data
     
     - name: Run predictor_up
-      env:
-        SERVER: ${{ secrets.SERVER }}
       run: make predictor_up SERVER=$SERVER
 
     # - name: Setup upterm session
@@ -25,5 +28,5 @@ jobs:
     - name: Run predictor_curl
       run: make predictor_curl
 
-    - name: Run predictor_down
-      run: make predictor_down
+    # - name: Run predictor_down
+    #   run: make predictor_down

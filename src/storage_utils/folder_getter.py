@@ -5,7 +5,9 @@ import pathlib
 from tqdm import tqdm
 
 
-def get_data(minio_server, src_path=None, dst_path='data', is_path_include_bucket=True, verbose=0):
+def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_bucket=True, verbose=0):
+    minio_server = minio_server.replace('http://', '') if minio_server.startswith('http://') else minio_server
+    
     client = Minio(
             minio_server,
             access_key="QhHnuvs0GQeZZeUvGWph",
@@ -24,8 +26,9 @@ def get_data(minio_server, src_path=None, dst_path='data', is_path_include_bucke
         # src_file = path_
         # dst_file = str(path_)[len('data')+1:] if str(path_).startswith('data') else str(path_)
         # client.fput_object('data', dst_file, src_file)
-        
+    
     objects = list(client.list_objects("data", recursive=True, prefix=src_path))
+    print("Downloading data ...")
     for i, obj in tqdm(enumerate(objects), total=len(objects)):
         try:
             client.fget_object("data", obj.object_name, os.path.join(dst_path, obj.object_name))
@@ -46,6 +49,6 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    print(args)
+    # print(args)
     
     get_data(args.minio_server, args.src_path, args.dst_path, args.is_path_include_bucket, args.verbose)
