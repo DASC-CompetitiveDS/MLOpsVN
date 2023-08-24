@@ -197,3 +197,4 @@ poetry.toml
 mlruns
 storage
 # data/model_config/*
+# bash/curl/curl_ip.sh

@@ -3,4 +3,4 @@ python3 src/predictor.py \
         --path '/phase-3/prob-1/predict' \
         --port 8000 \
         --predictor-config-path 'data/predictor_config/default_log.yaml' \
-        --mlflow_uri default
+        --server local

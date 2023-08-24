@@ -16,8 +16,8 @@ jobs:
     
     - name: Run predictor_up
       env:
-        MLFLOW_URI: ${{ secrets.MLFLOW_URI }}
-      run: make predictor_up MLFLOW_URI=$MLFLOW_URI
+        SERVER: ${{ secrets.SERVER }}
+      run: make predictor_up SERVER=$SERVER
 
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1

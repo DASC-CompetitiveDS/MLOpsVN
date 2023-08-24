@@ -17,4 +17,4 @@ services:
       MLFLOW_TRACKING_URI: http://host.docker.internal:5000
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    entrypoint: /bin/sh -c "python3 src/predictor.py --config-path ${MODEL_CONFIG_PATH} --path ${PREDICT_PATH} --port ${PORT} --predictor-config-path ${PREDICTOR_CONFIG_PATH} --mlflow_uri ${MLFLOW_URI}"
+    entrypoint: /bin/sh -c "python3 src/predictor.py --config-path ${MODEL_CONFIG_PATH} --path ${PREDICT_PATH} --port ${PORT} --predictor-config-path ${PREDICTOR_CONFIG_PATH} --server ${SERVER}"

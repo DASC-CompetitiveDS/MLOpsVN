@@ -13,6 +13,7 @@ This repository is the Momentum solution for MLOps Marathon 2023.
     pip install -r requirements.txt
     make mlflow_up
     make nginx_up
+    make minio_up
     ```
 
 2.  Train model

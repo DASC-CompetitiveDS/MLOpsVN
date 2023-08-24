@@ -14,20 +14,23 @@ from specific_data_processing import ProcessData
 from data import Data
 from utils.utils import save_request_data, handle_prediction
 import concurrent.futures
+from minio.folder_getter import get_data
 
 
 class Model:
-    def __init__(self, config_file_path, predictor_config_path, mlflow_uri='default'):
+    def __init__(self, config_file_path, predictor_config_path, server='local'):
         self.config = yaml.safe_load(open(config_file_path, "r"))
         logging.info(f"model-config: {self.config}")
         
         self.predictor_config = yaml.safe_load(open(predictor_config_path, "r"))
         logging.info(f"predictor-config: {self.predictor_config}")        
 
-        if mlflow_uri == 'default':
+        if server=='local':
             mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
         else:
-            mlflow.set_tracking_uri(mlflow_uri)
+            mlflow.set_tracking_uri(os.path.join(server, 'mlflow/'))
+            get_data(minio_server=server, dst_path='data')
+            
 
         self.prob_config = create_prob_config(
             self.config["phase_id"], self.config["prob_id"]
