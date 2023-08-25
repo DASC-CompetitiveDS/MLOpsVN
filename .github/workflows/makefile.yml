@@ -29,9 +29,10 @@ jobs:
     - name: Run predictor_up
       run: |
         make predictor_up SERVER=$SERVER
+        echo "Waiting for predictor up"
         sleep 5
+        echo "Predictor up success!!!"
       
-
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
 
