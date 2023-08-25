@@ -16,15 +16,20 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Prepare
-      run: |
-        pip install -r requirements.txt
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.txt
+
+    - name: Download data
+      run:
         make download_data_ci SERVER=$SERVER
     
     - name: Run predictor_up
       run: |
         make predictor_up SERVER=$SERVER
-        sleep 2
+        sleep 5
       
 
     # - name: Setup upterm session
