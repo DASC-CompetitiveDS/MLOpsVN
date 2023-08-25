@@ -5,7 +5,7 @@ import pathlib
 from tqdm import tqdm
 
 
-def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_bucket=True, verbose=0):
+def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_bucket=True, verbose=0, include_pattern=None):
     minio_server = minio_server.replace('http://', '') if minio_server.startswith('http://') else minio_server
     
     client = Minio(
@@ -28,6 +28,9 @@ def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_
         # client.fput_object('data', dst_file, src_file)
     
     objects = list(client.list_objects("data", recursive=True, prefix=src_path))
+    if not include_pattern is None:
+        objects = [obj for obj in objects if include_pattern in obj.object_name]
+        
     print("Downloading data ...")
     for i, obj in tqdm(enumerate(objects), total=len(objects)):
         try:
@@ -44,6 +47,8 @@ if __name__ == "__main__":
     parser.add_argument("--dst_path", type=str, default='data')
     parser.add_argument("--is_path_include_bucket", type=lambda x: (str(x).lower() == "true"), default=True, 
                         help='nếu True, vị trí đầu tiên trong đường dẫn là bucket')
+    parser.add_argument("--include_pattern", type=str, default=None,
+                        help="chỉ download những folder có pattern này")
     parser.add_argument("--verbose", type=int, default=0, 
                         help='0: hide error')
     
@@ -51,4 +56,4 @@ if __name__ == "__main__":
     
     # print(args)
     
-    get_data(args.minio_server, args.src_path, args.dst_path, args.is_path_include_bucket, args.verbose)
+    get_data(args.minio_server, args.src_path, args.dst_path, args.is_path_include_bucket, args.verbose, args.include_pattern)
