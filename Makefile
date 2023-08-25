@@ -8,6 +8,12 @@ teardown:
 	make predictor_down
 	make mlflow_down
 
+monitoring_up:
+	docker-compose -f deployment/monitoring/monitoring-compose.yaml up -d
+
+monitoring_down:
+	docker-compose -f deployment/monitoring/monitoring-compose.yaml down
+
 # nginx
 nginx_up:
 	docker-compose -f deployment/nginx/docker-compose.yml up -d 
