@@ -44,12 +44,8 @@ class Model:
         model_uri = os.path.join(
             "models:/", self.config["model_name"], str(self.config["model_version"])
         )
-        model_drift = os.path.join(
-            "models:/", "phase-2_prob-2_lgbm___drift", "3"
-        )
         self.input_schema = mlflow.models.Model.load(model_uri).get_input_schema().to_dict()
         self.model = mlflow.sklearn.load_model(model_uri)
-        self.model_drift = mlflow.sklearn.load_model(model_drift)
         
         self.dtypes_dict = {}
         self.dtypes_dict.update({col:'f' for col in self.prob_config.feature_configs['numeric_columns']})
@@ -62,7 +58,13 @@ class Model:
         ### vá tạm ###
         if self.config["prob_id"] == 'prob-1':
             self.type_=0
+            self.sub_model = None
         elif self.config["prob_id"] == 'prob-2':
+            model_sub = os.path.join(
+            "models:/", "phase-3_prob-1_lgbm_cv_specific_handle", "4"
+            )
+            self.input_schema_sub = mlflow.models.Model.load(model_sub).get_input_schema().to_dict()
+            self.sub_model = mlflow.sklearn.load_model(model_sub)
             self.type_=1
 
     def detect_drift(self, feature_df) -> int:
@@ -167,7 +169,12 @@ class Model:
                 # pred = feature_df[get_features]
                 # pred['feature_pred'] = RawDataProcessor.get_model_predictions(self.prob_config, pred)
                 # prediction = self.model.predict(pred)
+                get_features_sub = [each['name'] for each in self.input_schema_sub]  
+                pred_norm = self.sub_model.predict(feature_df[get_features_sub])
                 prediction = self.model.predict(feature_df[get_features])
+                idx_norm = np.where(pred_norm == 0)[0]
+                prediction[idx_norm] = 'Normal'
+                # logging.info(len(prediction))
 
         # logging.info(prediction)
         # res_drift = self.detect_drift(feature_df[get_features])
