@@ -19,7 +19,7 @@ jobs:
     - name: Prepare
       run: |
         pip install -r requirements.txt
-        python3 src/storage_utils/folder_getter.py --minio_server $SERVER --dst_path data
+        make download_data_ci SERVER=$SERVER
     
     - name: Run predictor_up
       run: make predictor_up SERVER=$SERVER
