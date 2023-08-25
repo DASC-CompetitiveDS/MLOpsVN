@@ -29,16 +29,17 @@ jobs:
     - name: Run predictor_up
       run: make predictor_up SERVER=$SERVER
 
-    # - run: |
-    #     echo "Waiting for predictor up"
-    #     sleep 30
-    #     echo "Predictor up success!!!"
+    - run: |
+        echo "Waiting for predictor up"
+        sleep 60
+        echo "Predictor up success!!!"
+
 
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
 
     - name: Run predictor_curl
-      run: timeout 60 make predictor_curl || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+      run: make predictor_curl
 
     # - name: Run predictor_down
     #   run: make predictor_down
