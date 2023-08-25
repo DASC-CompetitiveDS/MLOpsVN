@@ -1,0 +1,33 @@
+version: '3.7'
+services:
+  minio:
+    image: minio/minio
+    container_name: minio
+    # build:
+    #   context: minio/
+    ports:
+      - "9009:9000"
+      - "9100:9001"
+    volumes:
+      #- ./storage:/data
+      - /home/$USER/minio:/minio
+      # - /home/$USER/data/capture_data:/data/capture_data
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+      MINIO_ACCESS_KEY: QhHnuvs0GQeZZeUvGWph
+      MINIO_SECRET_KEY: LENlErsDf0JV2HbYGeQiDuFgH4kbjR9ipBvLO6ky
+    command: server --console-address ":9001" /minio
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add minio http://minio:9000 QhHnuvs0GQeZZeUvGWph LENlErsDf0JV2HbYGeQiDuFgH4kbjR9ipBvLO6ky;
+      /usr/bin/mc mb -p minio/data --with-versioning;
+      /usr/bin/mc policy public minio/data;
+
+      exit 0;
+      "

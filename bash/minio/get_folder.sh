@@ -1,0 +1,1 @@
+python3 src/storage_utils/folder_getter.py

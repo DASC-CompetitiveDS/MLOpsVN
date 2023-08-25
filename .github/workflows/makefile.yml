@@ -10,20 +10,45 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      SERVER: ${{ secrets.SERVER }}
 
     steps:
     - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r requirements.txt
+
+    - name: Download data
+      run:
+        make download_data_ci SERVER=$SERVER
     
     - name: Run predictor_up
-      env:
-        MLFLOW_URI: ${{ secrets.MLFLOW_URI }}
-      run: make predictor_up MLFLOW_URI=$MLFLOW_URI
+      run: make predictor_up SERVER=$SERVER
 
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
+    # - run: |
+    #     echo "Waiting for predictor up"
+    #     sleep 60
+    #     echo "Predictor up success!!!"
 
+
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
     - name: Run predictor_curl
-      run: make predictor_curl
+      # Use the retry action
+      uses: nick-fields/retry@v2
+      with:
+        max_attempts: 1000
+        retry_on: error
+        timeout_seconds: 60
+        # You can specify the shell commands you want to retry here
+        command: make predictor_curl		
 
-    - name: Run predictor_down
-      run: make predictor_down
+    # - name: Run predictor_curl
+    #   run: make predictor_curl
+
+    # - name: Run predictor_down
+    #   run: make predictor_down

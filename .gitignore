@@ -195,4 +195,6 @@ poetry.toml
 .idea
 
 mlruns
+storage
 # data/model_config/*
+# bash/curl/curl_ip.sh

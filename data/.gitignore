@@ -9,3 +9,6 @@ raw_data/**
 
 train_data/**
 !train_data/.gitkeep
+
+external_data/**
+!external_data/**/.gitkeep

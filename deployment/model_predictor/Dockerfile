@@ -7,7 +7,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # deployment/model_predictor/
-COPY requirements.txt .
+ADD requirements.txt .
 RUN pip install --upgrade wheel setuptools pip
 RUN pip install -r requirements.txt
 

@@ -1,0 +1,4 @@
+model_name: phase-3_prob-1_lgbm_test_server
+model_version: 1
+phase_id: phase-3
+prob_id: prob-1

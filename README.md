@@ -1,6 +1,6 @@
-# MLOps Marathon 2023 - Sample solution
+# MLOps Marathon 2023 - Momentum solution
 
-This repository is the sample solution for MLOps Marathon 2023.
+This repository is the Momentum solution for MLOps Marathon 2023.
 
 ## Quickstart
 
@@ -13,6 +13,7 @@ This repository is the sample solution for MLOps Marathon 2023.
     pip install -r requirements.txt
     make mlflow_up
     make nginx_up
+    make minio_up
     ```
 
 2.  Train model

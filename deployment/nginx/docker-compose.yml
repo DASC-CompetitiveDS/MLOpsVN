@@ -6,7 +6,8 @@ services:
     restart: on-failure
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./run_env/log/:/var/log/nginx/
+     # - ./run_env/log/:/var/log/nginx/
+      - /var/log/nginx/:/var/log/nginx/
       - ./sites-enabled/default:/etc/nginx/sites-enabled/default
     command:
       - bash
@@ -14,5 +15,5 @@ services:
       - 'nginx -g"daemon off;"'
     ports:
       - 5040:5040
-    # extra_hosts:
-    #   - "host.docker.internal:host-gateway"
+   # extra_hosts:
+     # - "host.docker.internal:host-gateway"
