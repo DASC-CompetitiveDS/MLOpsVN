@@ -30,7 +30,7 @@ jobs:
       run: |
         make predictor_up SERVER=$SERVER
         echo "Waiting for predictor up"
-        sleep 5
+        sleep 10
         echo "Predictor up success!!!"
       
     # - name: Setup upterm session
