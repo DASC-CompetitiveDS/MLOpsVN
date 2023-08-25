@@ -22,7 +22,10 @@ jobs:
         make download_data_ci SERVER=$SERVER
     
     - name: Run predictor_up
-      run: make predictor_up SERVER=$SERVER
+      run: |
+        make predictor_up SERVER=$SERVER
+        sleep 2
+      
 
     - name: Setup upterm session
       uses: lhotari/action-upterm@v1
