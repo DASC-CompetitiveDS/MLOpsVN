@@ -27,8 +27,8 @@ jobs:
         sleep 2
       
 
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
 
     - name: Run predictor_curl
       run: make predictor_curl
