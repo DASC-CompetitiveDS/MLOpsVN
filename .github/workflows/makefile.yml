@@ -29,17 +29,24 @@ jobs:
     - name: Run predictor_up
       run: make predictor_up SERVER=$SERVER
 
-    - run: |
-        echo "Waiting for predictor up"
-        sleep 60
-        echo "Predictor up success!!!"
+    # - run: |
+    #     echo "Waiting for predictor up"
+    #     sleep 60
+    #     echo "Predictor up success!!!"
 
 
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
-
     - name: Run predictor_curl
-      run: make predictor_curl
+      # Use the retry action
+      uses: nick-fields/retry@v2
+      with:
+        timeout_seconds: 60
+        # You can specify the shell commands you want to retry here
+        command: make predictor_curl		
+
+    # - name: Run predictor_curl
+    #   run: make predictor_curl
 
     # - name: Run predictor_down
     #   run: make predictor_down
