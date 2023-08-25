@@ -8,7 +8,7 @@ services:
     networks:
       - elastic
     volumes:
-      - /home/v_user/share/data/filebeat:/usr/share/filebeat/data
+      - /home/$USER/share/filebeat:/usr/share/filebeat/data
       - ./filebeat/filebeat_service.yml:/usr/share/filebeat/filebeat.yml
       - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
     environment:
@@ -26,7 +26,7 @@ services:
     networks:
       - elastic
     volumes:
-      - /home/v_user/share/data/filebeat-nginx:/usr/share/filebeat/data
+      - /home/$USER/share/filebeat-nginx:/usr/share/filebeat/data
       - ./filebeat/filebeat_nginx.yml:/usr/share/filebeat/filebeat.yml
       - /var/log/nginx:/var/log/nginx:ro
     environment:
@@ -65,7 +65,7 @@ services:
       - "9200:9200"
     volumes:
       - type: bind
-        source: /home/v_user/share/data/es
+        source: /home/$USER/share/es
         target: /usr/share/elasticsearch/data
     networks:
       - elastic
