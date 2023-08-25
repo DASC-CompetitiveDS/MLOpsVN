@@ -8,8 +8,8 @@ from tqdm import tqdm
 def put_data(path, is_include_parent_path):
     client = Minio(
             "localhost:9009",
-            access_key="QhHnuvs0GQeZZeUvGWph",
-            secret_key="LENlErsDf0JV2HbYGeQiDuFgH4kbjR9ipBvLO6ky",
+            access_key="admin",
+            secret_key="password",
             secure=False
         )
 

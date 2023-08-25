@@ -10,8 +10,8 @@ def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_
     
     client = Minio(
             minio_server,
-            access_key="QhHnuvs0GQeZZeUvGWph",
-            secret_key="LENlErsDf0JV2HbYGeQiDuFgH4kbjR9ipBvLO6ky",
+            access_key="admin",
+            secret_key="password",
             secure=False
         )
         
