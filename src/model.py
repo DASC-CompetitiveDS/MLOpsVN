@@ -18,11 +18,12 @@ from storage_utils.folder_getter import get_data
 
 
 class Model:
-    def __init__(self, config_file_path, predictor_config_path, server='local'):
+    def __init__(self, config_file_path, predictor_config, server='local'):
         self.config = yaml.safe_load(open(config_file_path, "r"))
         logging.info(f"model-config: {self.config}")
         
-        self.predictor_config = yaml.safe_load(open(predictor_config_path, "r"))
+        # self.predictor_config = yaml.safe_load(open(predictor_config_path, "r"))
+        self.predict_config = predictor_config
         logging.info(f"predictor-config: {self.predictor_config}")        
 
         if server=='local':
@@ -88,7 +89,10 @@ class Model:
     
     def log_time(self, start_time, task):
         run_time = round((time() - start_time) * 1000, 0)
-        logging.info(f"{task} takes {run_time} ms")        
+        logging.info(f"{task} takes {run_time} ms")
+        
+    async def async_predict(self, data: Data):
+        return self.predict(data)   
     
     def predict(self, data: Data):
         # logging.info(f"Running on os.getpid(): {os.getpid()}")
@@ -130,9 +134,6 @@ class Model:
         
         if self.LOG_TIME:
             self.predictor_logger_executor.submit(self.log_time, start_time, 'process_data')
-            # start_time_ = time()
-            # self.log_time(start_time, 'process_data')
-            # self.log_time(start_time_, 'log')
             start_time = time()
         
         #======================= CAPTURE DATA =============#
@@ -159,9 +160,6 @@ class Model:
     
         if self.LOG_TIME:
             self.predictor_logger_executor.submit(self.log_time, start_time, 'drift')
-            # start_time_ = time()
-            # self.log_time(start_time, 'drift')
-            # self.log_time(start_time_, 'log')
             start_time = time()
         
         if self.PREDICT_CONSTANT:
@@ -187,13 +185,7 @@ class Model:
 
         if self.LOG_TIME:
             self.predictor_logger_executor.submit(self.log_time, start_time, 'prediction')
-            # start_time_ = time()
-            # self.log_time(start_time, 'prediction')
-            # self.log_time(start_time_, 'log')
             start_time = time()
-        
-        # res_drift.wait()
-        # res_drift = res_drift_task.get(timeout=3)
         
         return {
             "id": data.id,

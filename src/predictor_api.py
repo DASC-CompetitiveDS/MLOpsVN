@@ -11,17 +11,25 @@ from fastapi import BackgroundTasks
 
 
 class PredictorApi:
-    def __init__(self, predictor: Model, path: str):
+    def __init__(self, predictor: Model, path: str, use_async=False):
         self.predictor = predictor
 
         self.app = FastAPI()
 
-        @self.app.post(path)
-        def predict(data: Data, request: Request):
-            self._log_request(request)
-            response = self.predictor.predict(data)
-            self._log_response(response)
-            return response
+        if use_async:
+            @self.app.post(path)
+            async def predict(data: Data, request: Request):
+                self._log_request(request)
+                response = await self.predictor.async_predict(data)
+                self._log_response(response)
+                return response
+        else:
+            @self.app.post(path)
+            def predict(data: Data, request: Request):
+                self._log_request(request)
+                response = self.predictor.async_predict(data)
+                self._log_response(response)
+                return response
 
 
     @staticmethod

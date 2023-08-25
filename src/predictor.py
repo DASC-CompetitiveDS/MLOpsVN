@@ -18,9 +18,10 @@ parser.add_argument("--predictor-config-path", type=str, default='data/predict_c
 
 args = parser.parse_args()
 
-model = Model(config_file_path=args.config_path, server=args.server, predictor_config_path=args.predictor_config_path)
-predictor = PredictorApi(model, args.path)
+predictor_config = yaml.safe_load(open(args.predictor_config_path, "r"))
 
+model = Model(config_file_path=args.config_path, server=args.server, predictor_config=predictor_config)
+predictor = PredictorApi(model, args.path, use_async=predictor_config['USE_ASYNC'])
 
 if __name__ == "__main__":
     file = __file__.split("/")[-1].split(".")[0]
