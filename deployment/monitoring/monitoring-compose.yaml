@@ -1,0 +1,97 @@
+version: '2'
+
+services:
+  filebeat_service:
+    image: docker.elastic.co/beats/filebeat:7.17.3
+    container_name: filebeat_service
+    user: root
+    networks:
+      - elastic
+    volumes:
+      - /home/v_user/share/data/filebeat:/usr/share/filebeat/data
+      - ./filebeat/filebeat_service.yml:/usr/share/filebeat/filebeat.yml
+      - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
+    environment:
+      - ELASTICSEARCH_HOSTS=elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=mlops2023
+    command: ["--strict.perms=false"]
+    depends_on:
+      - logstash
+    restart: always
+  filebeat_nginx:
+    image: docker.elastic.co/beats/filebeat:7.17.3
+    container_name: filebeat_nginx
+    user: root
+    networks:
+      - elastic
+    volumes:
+      - /home/v_user/share/data/filebeat-nginx:/usr/share/filebeat/data
+      - ./filebeat/filebeat_nginx.yml:/usr/share/filebeat/filebeat.yml
+      - /var/log/nginx:/var/log/nginx:ro
+    environment:
+      - ELASTICSEARCH_HOSTS=elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=mlops2023
+    command: ["--strict.perms=false"]
+    depends_on:
+      - logstash
+    restart: always
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.3
+    container_name: logstash
+    volumes:
+      - type: bind
+        source: ./logstash/pipeline.yml
+        target: /usr/share/logstash/pipeline/pipeline.yml
+      - type: bind
+        source: ./logstash/logstash.yml
+        target: /usr/share/logstash/config/logstash.yml
+    networks:
+      - elastic
+    ports:
+      - "5111:5000"
+    depends_on:
+      - elasticsearch
+    restart: always
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=mlops2023
+    ports:
+      - "9200:9200"
+    volumes:
+      - type: bind
+        source: /home/v_user/share/data/es
+        target: /usr/share/elasticsearch/data
+    networks:
+      - elastic
+    mem_limit: 3Gi
+    mem_reservation: 512m
+    cpus: 0.4
+    oom_kill_disable: true
+    restart: always
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.3
+    container_name: kibana
+    environment:
+      - elasticsearch.url=http://elasticsearch:9200
+      #- elasticsearch.url=http://localhost:9200
+      - xpack.security.enabled=true
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=mlops2023
+      - SERVER_BASEPATH=/kibana
+      - SERVER_REWRITEBASEPATH=true
+    ports:
+      - "5601:5601"
+    networks:
+      - elastic
+    depends_on:
+      - elasticsearch
+    restart: always
+networks:
+  elastic:
+   driver: bridge

@@ -1,0 +1,21 @@
+filebeat:
+  inputs:
+  #autodiscover.providers:
+    #- type: docker
+      #templates:
+        #- condition.contains:
+            #docker.container.name: model
+          #config:
+            #-  type: container
+               #paths: 
+                #- /var/lib/docker/containers/*/*.log 
+   # - type: container
+      #paths: 
+       #-  /var/lib/docker/containers/*/*.log
+    - type: docker
+      containers.ids:
+        - 'c63823bdbd98d37086266faf73ead582ced1aa5b155271f5d33fd6b51fcc9282'
+        - 'dbfb40ef82b29405ed437ea0c919a015a199d342e48c703fd4c4439ec8bd1cdb'
+output:
+  logstash:
+    hosts: ["logstash:6000"]
