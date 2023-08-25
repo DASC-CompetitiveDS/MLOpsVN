@@ -3,7 +3,9 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-
+import os
+from pandas.util import hash_pandas_object
+import itertools
     
 def get_confusion_matrix(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
@@ -46,3 +48,25 @@ def handle_prediction(label_pred, proba_pred):
             continue
         res_pred.append(each)
     return np.array(res_pred)
+
+def generate_index_missing_values(data, target_col, per, unavailable_index):
+    data['save_index'] = data.index.tolist()
+    left_index = list(set(data.index.tolist()) ^ set(unavailable_index))
+    left_data = data.loc[left_index].reset_index(drop=True)
+    left_data = left_data.groupby(target_col, group_keys=False).apply(lambda x: x.sample(frac=per))
+    del unavailable_index, data
+    return left_data['save_index'].values.tolist()
+
+def generate_missing_specific_columns(data, list_columns, missing_rate, target_col='label', unavailable_index=[], step=None):
+    step = len(list_columns) if step is None else step
+    idx_miss = len(missing_rate)
+    combinations = list(itertools.combinations(list_columns, step))
+    for comb in combinations:
+        missing_index = generate_index_missing_values(data[[target_col]], target_col, missing_rate[idx_miss - step], unavailable_index.copy())
+        unavailable_index = [*unavailable_index, *missing_index]
+        for col in comb:
+            data.loc[missing_index, col] = np.nan
+            # print(f"Col {col} - missing rate {data[col].isna().sum() / data.shape[0]}")
+    if step == 1:
+        return data 
+    return generate_missing_specific_columns(data, list_columns, missing_rate, target_col, unavailable_index, step - 1)

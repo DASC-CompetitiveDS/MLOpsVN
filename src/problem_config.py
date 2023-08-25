@@ -88,6 +88,9 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.test_x_drift_path = prob_config.train_data_path / "test_x_drift.parquet"
     prob_config.test_y_drift_path = prob_config.train_data_path / "test_y_drift.parquet"
 
+    prob_config.add_features_model = (
+        AppPath.MODEL_CONFIG_DIR / f"{phase_id}" / f"{prob_id}" / "add_features_model.yaml"
+    )
     # get properties of ml-problem
     prob_config.feature_configs = load_feature_configs_dict(prob_config.feature_config_path)
     prob_config.target_col = prob_config.feature_configs.get("target_column")

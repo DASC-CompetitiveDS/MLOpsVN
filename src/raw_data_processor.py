@@ -13,6 +13,10 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder  
 from specific_data_processing import ProcessData
 
+from utils.config import AppConfig
+import mlflow
+import yaml
+
 class TargetEncoder:
     def __init__(self) -> None:
         self._values = {}
@@ -136,9 +140,20 @@ class RawDataProcessor:
             y_valid.to_parquet(f"{str(prob_config.train_data_path)}/test_y_{i}.parquet", index=False)
     
     
+    @staticmethod
+    def get_model_predictions(prob_config, training_data):
+        mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
+        with open(prob_config.add_features_model, "r") as f:
+                config_model = yaml.safe_load(f)
+        model_uri = os.path.join(
+            "models:/", config_model["model_name"], str(config_model["model_version"])
+        )
+        input_schema = mlflow.models.Model.load(model_uri).get_input_schema().to_dict()
+        model = mlflow.sklearn.load_model(model_uri)
+        return model.predict_proba(training_data[[each['name'] for each in input_schema]])[:, 1]
 
     @staticmethod
-    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, external_data: bool, kfold: bool):
+    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, external_data: bool, kfold: bool, add_features: bool):
         logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
         training_data = pd.read_parquet(prob_config.raw_data_path)
         target_col = prob_config.target_col  
@@ -171,6 +186,9 @@ class RawDataProcessor:
         with open(category_index_path, "wb") as f:
             pickle.dump(category_index, f)
         
+        if add_features:
+            training_data['feature_pred'] = RawDataProcessor.get_model_predictions(prob_config, training_data.copy())
+
         if kfold is False:
             RawDataProcessor.split_train_validation(training_data, prob_config, target_col, drift)
         else:
@@ -265,10 +283,11 @@ if __name__ == "__main__":
     parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--external_data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--kfold", type=lambda x: (str(x).lower() == "true"), default=False)
+    parser.add_argument("--add_features", type=lambda x: (str(x).lower() == "true"), default=False)
     args = parser.parse_args()
 
     prob_config = get_prob_config(args.phase_id, args.prob_id)
     if args.remove_dup not in ['abs', 'rel', 'None']:
         print("The available removing duplicate records methods: [abs, rel, None]")
     else:
-        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.specific_handle, args.drift, args.external_data, args.kfold)
+        RawDataProcessor.process_raw_data(prob_config, args.remove_dup, args.order_reg, args.specific_handle, args.drift, args.external_data, args.kfold, args.add_features)
