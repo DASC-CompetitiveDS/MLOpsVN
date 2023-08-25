@@ -27,14 +27,16 @@ jobs:
         make download_data_ci SERVER=$SERVER
     
     - name: Run predictor_up
-      run: |
-        make predictor_up SERVER=$SERVER
+      run: make predictor_up SERVER=$SERVER
+
+    - run: |
         echo "Waiting for predictor up"
         sleep 10
         echo "Predictor up success!!!"
-      
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
+
+
+    # - name: Setup upterm session
+    #   uses: lhotari/action-upterm@v1
 
     - name: Run predictor_curl
       run: make predictor_curl
