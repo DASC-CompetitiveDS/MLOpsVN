@@ -7,14 +7,14 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 from model import Model
 from data import Data
 from predictor_api import PredictorApi
-
+import yaml
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config-path", type=str, default='data/model_config/phase-3/prob-1/phase-3_prob-1_cv.yaml')
 parser.add_argument("--path", type=str, default='/phase-3/prob-1/predict')
 parser.add_argument("--port", type=int, default=8000)
 parser.add_argument("--server", type=str, default='local')
-parser.add_argument("--predictor-config-path", type=str, default='data/predict_config/default.yaml')
+parser.add_argument("--predictor-config-path", type=str, default='data/predictor_config/default.yaml')
 
 args = parser.parse_args()
 

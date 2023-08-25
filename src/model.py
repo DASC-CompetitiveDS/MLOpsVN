@@ -23,7 +23,7 @@ class Model:
         logging.info(f"model-config: {self.config}")
         
         # self.predictor_config = yaml.safe_load(open(predictor_config_path, "r"))
-        self.predict_config = predictor_config
+        self.predictor_config = predictor_config
         logging.info(f"predictor-config: {self.predictor_config}")        
 
         if server=='local':
