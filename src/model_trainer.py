@@ -75,6 +75,13 @@ class ModelTrainer:
         else:
             cv_generator = None
         
+        if type_model != 'lgbm':
+            with open(prob_config.dict_convert_path, 'rb') as file_:
+                dict_convert = pickle.load(file_)
+            train_y = np.array([dict_convert['l2i'][x] for x in train_y.values])
+            test_y = np.array([dict_convert['l2i'][x] for x in test_y.values])
+
+
         # get params
         if time_tuning != 0:
             if not args.cross_validation:
@@ -151,7 +158,7 @@ if __name__ == "__main__":
     parser.add_argument("--drift_training", type=lambda x: (str(x).lower() == "true"), default=False, 
                         help='sử dụng dữ liệu drift')
     parser.add_argument("--specific_handle", type=lambda x: (str(x).lower() == "true"), default=False)
-    parser.add_argument("--add_captured_data", type=lambda x: (str(x).lower() == "true"), default=True)
+    parser.add_argument("--add_captured_data", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--log_confusion_matrix", type=lambda x: (str(x).lower() == "true"), default=False)
     parser.add_argument("--model_name", type=str, default=None)
     parser.add_argument("--cross_validation", type=lambda x: (str(x).lower() == "true"), default=True)

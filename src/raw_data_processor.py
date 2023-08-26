@@ -16,6 +16,8 @@ from specific_data_processing import ProcessData
 from utils.config import AppConfig
 import mlflow
 import yaml
+import warnings
+warnings.filterwarnings('ignore')
 
 class TargetEncoder:
     def __init__(self) -> None:
@@ -157,7 +159,12 @@ class RawDataProcessor:
         logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
         training_data = pd.read_parquet(prob_config.raw_data_path)
         target_col = prob_config.target_col  
-        
+        lbc = LabelEncoder().fit(training_data[target_col])
+        dict_convert = {}
+        dict_convert['l2i'] = {each: idx for idx, each in enumerate(lbc.classes_)}
+        dict_convert['i2l'] = {idx: each for idx, each in enumerate(lbc.classes_)}
+        with open(prob_config.dict_convert_path, 'wb') as file_:
+            pickle.dump(dict_convert, file_)
         if external_data:
             external_data_train = pd.read_parquet(prob_config.external_data_path)
             training_data = pd.concat([training_data, external_data_train[training_data.columns.tolist()]]).reset_index(drop=True)

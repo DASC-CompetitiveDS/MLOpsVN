@@ -25,8 +25,8 @@ def data_processing_phase3(data, target_col, phase="train"):
     #feature 10 -> (0, 252, 29, 60) và null
     #feature 9
     if phase == "train":
-        data= data[~(data[target_col] == 'Normal')].reset_index(drop=True)
-        data= generate_missing_specific_columns(data, ['feature2', 'feature3', 'feature4'], [0.03, 0.02, 0.01])
+        # data= data[~(data[target_col] == 'Normal')].reset_index(drop=True)
+        data= generate_missing_specific_columns(data, ['feature2', 'feature3', 'feature4'], [0.03, 0.02, 0.02])
     # convert_1 = ["feature9", "feature19", "feature22", "feature10"]
     # for col in convert_1:
     #     data[col] = data[col].astype(int).astype(str)
