@@ -40,6 +40,8 @@ def save_request_data(feature_df: pd.DataFrame, captured_data_dir, data_id: str)
     feature_df.to_parquet(output_file_path, index=False)
     return output_file_path
 
+# def hash_filename()
+
 def handle_prediction(label_pred, proba_pred):
     res_pred = []
     for index, each in enumerate(label_pred):

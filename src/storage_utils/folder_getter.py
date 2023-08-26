@@ -5,7 +5,7 @@ import pathlib
 from tqdm import tqdm
 
 
-def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_bucket=True, verbose=0, include_pattern=None):
+def get_data(minio_server: str, src_path=None, dst_path='data', verbose=0, include_pattern=None, tag:tuple=None):
     minio_server = minio_server.replace('http://', '') if minio_server.startswith('http://') else minio_server
     
     client = Minio(
@@ -29,7 +29,21 @@ def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_
     
     objects = list(client.list_objects("data", recursive=True, prefix=src_path))
     if not include_pattern is None:
+        # print(f"Only download files contain {include_pattern} in path.")
         objects = [obj for obj in objects if include_pattern in obj.object_name]
+        
+    if not tag is None:
+        k, v = tag
+        
+        def filter_by_tag(object_name, k, v):
+            tag = client.get_object_tags('data', object_name)
+            if not tag is None:
+                if tag[k] == v:
+                    return True
+            return False
+                
+        
+        objects = [obj for obj in objects if filter_by_tag(obj.object_name, k, v)]
         
     print("Downloading data ...")
     for i, obj in tqdm(enumerate(objects), total=len(objects)):
@@ -43,10 +57,10 @@ def get_data(minio_server: str, src_path=None, dst_path='data', is_path_include_
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--minio_server", type=str, default='localhost:9009')
-    parser.add_argument("--src_path", type=str, default=None)
-    parser.add_argument("--dst_path", type=str, default='data')
-    parser.add_argument("--is_path_include_bucket", type=lambda x: (str(x).lower() == "true"), default=True, 
-                        help='nếu True, vị trí đầu tiên trong đường dẫn là bucket')
+    parser.add_argument("--src_path", type=str, default=None, help="Download dữ liệu trong đường dẫn này")
+    parser.add_argument("--dst_path", type=str, default='.', help="Ghi dữ liệu ra đường dẫn này")
+    # parser.add_argument("--is_path_include_bucket", type=lambda x: (str(x).lower() == "true"), default=True, 
+    #                     help='nếu True, vị trí đầu tiên trong đường dẫn là bucket')
     parser.add_argument("--include_pattern", type=str, default=None,
                         help="chỉ download những folder có pattern này")
     parser.add_argument("--verbose", type=int, default=0, 
@@ -56,4 +70,4 @@ if __name__ == "__main__":
     
     # print(args)
     
-    get_data(args.minio_server, args.src_path, args.dst_path, args.is_path_include_bucket, args.verbose, args.include_pattern)
+    get_data(args.minio_server, args.src_path, args.dst_path, args.verbose, args.include_pattern)

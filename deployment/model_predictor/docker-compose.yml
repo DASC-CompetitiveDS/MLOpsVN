@@ -15,6 +15,7 @@ services:
     environment:
       MODEL_CONFIG_PATH: ${MODEL_CONFIG_PATH}
       MLFLOW_TRACKING_URI: http://host.docker.internal:5000
+      MINIO_URI: http://host.docker.internal:9009
     extra_hosts:
       - "host.docker.internal:host-gateway"
     entrypoint: /bin/sh -c "python3 src/predictor.py --config-path ${MODEL_CONFIG_PATH} --path ${PREDICT_PATH} --port ${PORT} --predictor-config-path ${PREDICTOR_CONFIG_PATH} --server ${SERVER}"

@@ -15,6 +15,8 @@ from data import Data
 from utils.utils import save_request_data, handle_prediction
 import concurrent.futures
 from storage_utils.folder_getter import get_data
+from storage_utils.object_putter import ParquetPutter
+from minio.commonconfig import Tags
 
 
 class Model:
@@ -67,6 +69,17 @@ class Model:
             self.type_=1
             
         self.predictor_logger_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1) 
+        
+        if self.CAPTURE_DATA:
+            # if 'captured_version' not in self.predictor_config.keys():
+            #     self.captured_version = None
+            # else:
+            #     self.captured_version = self.predictor_config['captured_version']
+            assert 'CAPTURED_VERSION' in self.predictor_config.keys(), "cần thêm CAPTURED_VERSION vào predictor_config khi CAPTURE_DATA. Ví dụ: CAPTURED_VERSION : 09-11"
+            
+            self.captured_version = self.predictor_config['CAPTURED_VERSION']
+            self.parquet_putter = ParquetPutter(AppConfig.MINIO_URI)
+            
 
     def detect_drift(self, feature_df) -> int:
         # time.sleep(0.02)
@@ -112,9 +125,14 @@ class Model:
                 #     raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
                 # )
 
-            save_request_data(
-                raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
-            )
+            # save_request_data(
+            #     raw_df, f"{self.prob_config.captured_data_dir}/raw/", data.id
+            # )
+            
+            tags = Tags(for_object=True)
+            tags['captured_version'] = self.captured_version
+            self.parquet_putter.put_data(f"{self.prob_config.captured_data_dir}/raw/",
+                                        dataframe=raw_df, data_id=data.id, tags=tags)
 
         if self.prob_config.prob_id == 'prob-3':
             raw_df = ProcessData.HANDLE_DATA[f'{self.prob_config.phase_id}_{self.prob_config.prob_id}'](raw_df, self.prob_config.target_col, phase='test')
@@ -142,10 +160,14 @@ class Model:
             #     save_request_data(
             #         feature_df, self.prob_config.captured_data_dir, data.id
             #     )
-
-            save_request_data(
-                feature_df, self.prob_config.captured_data_dir, data.id
-            )
+            # save_request_data(
+            #     feature_df, self.prob_config.captured_data_dir, data.id
+            # )
+            
+            tags = Tags(for_object=True)
+            tags['captured_version'] = self.captured_version
+            self.parquet_putter.put_data(self.prob_config.captured_data_dir,
+                                        dataframe=raw_df, data_id=data.id, tags=tags)
             
         get_features = [each['name'] for each in self.input_schema]        
         
