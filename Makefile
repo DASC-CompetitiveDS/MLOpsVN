@@ -1,7 +1,7 @@
 SERVER = local
 
 download_data_ci:
-	bash bash/minio/get_folder_ci.sh $(SERVER) phase-3 data
+	bash bash/minio/get_data_ci.sh $(SERVER) phase-3 captured_data . test
 
 # teardown
 teardown:
