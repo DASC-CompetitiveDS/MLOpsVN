@@ -4,7 +4,7 @@ filebeat:
       paths:
         - /var/log/nginx/test_access.log*
       exclude_files: ['\.gz$']
-      exclude_lines: ['^.*/kibana/.*$']
+      exclude_lines: ['^.*/kibana/.*$','^.*/grafana/.*$']
 output:
   logstash:
     hosts: ["logstash:5000"]

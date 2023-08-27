@@ -14,8 +14,8 @@ filebeat:
        #-  /var/lib/docker/containers/*/*.log
     - type: docker
       containers.ids:
-        - 'c63823bdbd98d37086266faf73ead582ced1aa5b155271f5d33fd6b51fcc9282'
-        - 'dbfb40ef82b29405ed437ea0c919a015a199d342e48c703fd4c4439ec8bd1cdb'
+        - '8853b98af346ce527121f96a3602d27949124b99e93e3176d8b40cf9e70ce6f4'
+        - '4e67df28f59eb43caa99377df8cce4d2efdbbbc9b0122d1a056b164d15143379'
 output:
   logstash:
     hosts: ["logstash:6000"]

@@ -1,6 +1,24 @@
 version: '2'
 
 services:
+ # filebeat_cpu:
+   # image: docker.elastic.co/beats/filebeat:7.17.3
+   # container_name: filebeat_cpu
+   # user: root
+   # networks:
+     # - elastic
+   # volumes:
+     # - /home/$USER/share/filebeat-cpu:/usr/share/filebeat/data
+     # - ./filebeat/filebeat_cpu.yml:/usr/share/filebeat/filebeat.yml
+     # - /home/$USER/share/cpu:/tmp:ro
+   # environment:
+     # - ELASTICSEARCH_HOSTS=elasticsearch:9200
+     # - ELASTICSEARCH_USERNAME=elastic
+     # - ELASTICSEARCH_PASSWORD=mlops2023
+   # command: ["--strict.perms=false"]
+   # depends_on:
+     # - logstash
+   # restart: always
   filebeat_service:
     image: docker.elastic.co/beats/filebeat:7.17.3
     container_name: filebeat_service

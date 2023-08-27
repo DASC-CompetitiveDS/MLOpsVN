@@ -1,0 +1,9 @@
+filebeat:
+  inputs:
+    - type: log
+      paths:
+        - /tmp/cpu.txt
+      #exclude_lines: ['^.*/kibana/.*$']
+output:
+  logstash:
+    hosts: ["logstash:7000"]

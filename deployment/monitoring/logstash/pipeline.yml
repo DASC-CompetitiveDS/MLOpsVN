@@ -7,11 +7,18 @@ input {
     port => 6000
     type => service
   }
+  beats {
+    port => 7000
+    type => cpu
+  }
 }
 
 filter {
   if [type] == "syslog" {
     if "kibana" in [message] {
+      drop {}
+    }
+    if "grafana" in [message] {
       drop {}
     }
     grok {
@@ -37,5 +44,12 @@ output {
         index => "service-%{+YYYY.MM.dd}"
       }
   }
-
+  if [type] == "cpu" {
+      elasticsearch {
+        hosts => ["elasticsearch:9200"]
+        user => elastic
+        password => mlops2023
+        index => "cpu-%{+YYYY.MM.dd}"
+      }
+  }
 }

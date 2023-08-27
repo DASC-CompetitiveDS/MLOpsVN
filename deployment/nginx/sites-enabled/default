@@ -50,5 +50,9 @@ server {
 	location ~ /kibana {
 		proxy_pass http://localhost:5601;
 	}
-
+        
+	location ~ /grafana {
+ 		proxy_set_header Host $http_host;
+		proxy_pass http://localhost:3000;
+	}
 }
