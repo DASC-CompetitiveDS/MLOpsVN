@@ -55,8 +55,8 @@ predictor_restart:
 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml start
 
 predictor_curl:
-	curl -X POST http://localhost:5001/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
-	curl -X POST http://localhost:5002/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
+	curl -X POST http://13.212.32.97:5040/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
+	curl -X POST http://13.212.32.97:5040/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
 
 predictor_curl_8000:
 	curl -X POST http://localhost:8000/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
