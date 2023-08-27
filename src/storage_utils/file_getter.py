@@ -27,38 +27,40 @@ def get_data(minio_server: str, src_path=None, dst_path='.', verbose=0, include_
         # dst_file = str(path_)[len('data')+1:] if str(path_).startswith('data') else str(path_)
         # client.fput_object('data', dst_file, src_file)
     
-    objects = list(client.list_objects("data", recursive=True, prefix=src_path))
-    if not include_pattern is None:
-        print(f"Include {include_pattern}")
-        # print(f"Only download files contain {include_pattern} in path.")
-        objects = [obj for obj in objects if include_pattern in obj.object_name]
+    # objects = list(client.list_objects("data", recursive=True, prefix=src_path))
+    # if not include_pattern is None:
+    #     print(f"Include {include_pattern}")
+    #     # print(f"Only download files contain {include_pattern} in path.")
+    #     objects = [obj for obj in objects if include_pattern in obj.object_name]
     
-    if not exclude_pattern is None:
-        print(f"Exclude {exclude_pattern}")
-        # print(f"Only download files contain {include_pattern} in path.")
-        objects = [obj for obj in objects if exclude_pattern not in obj.object_name]
+    # if not exclude_pattern is None:
+    #     print(f"Exclude {exclude_pattern}")
+    #     # print(f"Only download files contain {include_pattern} in path.")
+    #     objects = [obj for obj in objects if exclude_pattern not in obj.object_name]
     
-    if not tag is None:
-        print(f"Tag: {tag}")
-        k, v = tag
+    # if not tag is None:
+    #     print(f"Tag: {tag}")
+    #     k, v = tag
         
-        def filter_by_tag(object_name, k, v):
-            tag = client.get_object_tags('data', object_name)
-            if not tag is None:
-                if tag[k] == v:
-                    return True
-            return False
+    #     def filter_by_tag(object_name, k, v):
+    #         tag = client.get_object_tags('data', object_name)
+    #         if not tag is None:
+    #             if tag[k] == v:
+    #                 return True
+    #         return False
                 
-        print("Filtering by tag ...")
-        objects = [obj for obj in tqdm(objects) if filter_by_tag(obj.object_name, k, v)]
+    #     print("Filtering by tag ...")
+    #     objects = [obj for obj in tqdm(objects) if filter_by_tag(obj.object_name, k, v)]
         
-    print("Downloading data ...")
-    for i, obj in tqdm(enumerate(objects), total=len(objects)):
-        try:
-            client.fget_object("data", obj.object_name, os.path.join(dst_path, obj.object_name))
-        except Exception as e:
-            if verbose == 0:
-                pass
+    # print("Downloading data ...")
+    # for i, obj in tqdm(enumerate(objects), total=len(objects)):
+    #     try:
+    #         client.fget_object("data", obj.object_name, os.path.join(dst_path, obj.object_name))
+    #     except Exception as e:
+    #         if verbose == 0:
+    #             pass
+    
+    client.fget_object("data", src_path, os.path.join(dst_path, src_path))
         
 
 if __name__ == "__main__":
