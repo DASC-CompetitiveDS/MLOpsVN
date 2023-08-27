@@ -69,8 +69,9 @@ class Model:
             self.input_schema_sub = mlflow.models.Model.load(model_sub).get_input_schema().to_dict()
             self.sub_model = mlflow.sklearn.load_model(model_sub)
             self.type_=1
-            
-        self.predictor_logger_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1) 
+        
+        if self.LOG_TIME:
+            self.predictor_logger_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1) 
         
         if self.CAPTURE_DATA:
             # if 'captured_version' not in self.predictor_config.keys():

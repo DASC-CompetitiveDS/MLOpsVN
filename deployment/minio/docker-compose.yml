@@ -7,7 +7,7 @@ services:
     #   context: minio/
     ports:
       - "9009:9000"
-      - "9100:9001"
+      - "9300:9001"
     volumes:
       #- ./storage:/data
       - /home/$USER/minio:/minio
