@@ -167,7 +167,7 @@ class Model:
             tags = Tags(for_object=True)
             tags['captured_version'] = self.captured_version
             self.parquet_putter.put_data(self.prob_config.captured_data_dir,
-                                        dataframe=raw_df, data_id=data.id, tags=tags)
+                                        dataframe=feature_df, data_id=data.id, tags=tags)
             
         get_features = [each['name'] for each in self.input_schema]        
         
