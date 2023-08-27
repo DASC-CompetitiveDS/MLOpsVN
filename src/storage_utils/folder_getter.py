@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def get_data(minio_server: str, src_path=None, dst_path='data', verbose=0, include_pattern=None, exclude_pattern=None, tag:tuple=None):
     minio_server = minio_server.replace('http://', '') if minio_server.startswith('http://') else minio_server
-    
+    print(minio_server)
     client = Minio(
             minio_server,
             access_key="admin",
@@ -29,14 +29,17 @@ def get_data(minio_server: str, src_path=None, dst_path='data', verbose=0, inclu
     
     objects = list(client.list_objects("data", recursive=True, prefix=src_path))
     if not include_pattern is None:
+        print(f"Include {include_pattern}")
         # print(f"Only download files contain {include_pattern} in path.")
         objects = [obj for obj in objects if include_pattern in obj.object_name]
     
     if not exclude_pattern is None:
+        print(f"Exclude {exclude_pattern}")
         # print(f"Only download files contain {include_pattern} in path.")
         objects = [obj for obj in objects if exclude_pattern not in obj.object_name]
-        
+    
     if not tag is None:
+        print(f"Tag: {tag}")
         k, v = tag
         
         def filter_by_tag(object_name, k, v):
