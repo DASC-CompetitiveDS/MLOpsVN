@@ -49,8 +49,8 @@ def get_data(minio_server: str, src_path=None, dst_path='data', verbose=0, inclu
                     return True
             return False
                 
-        
-        objects = [obj for obj in objects if filter_by_tag(obj.object_name, k, v)]
+        print("Filtering by tag ...")
+        objects = [obj for obj in tqdm(objects) if filter_by_tag(obj.object_name, k, v)]
         
     print("Downloading data ...")
     for i, obj in tqdm(enumerate(objects), total=len(objects)):
