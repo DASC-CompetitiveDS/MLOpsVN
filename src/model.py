@@ -90,7 +90,10 @@ class Model:
         # count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
         # res_drift = 1 if count_dup == 2 and feature_df['feature2'].loc[0] == 118 and feature_df['feature4'].loc[1] == 1 else 0
         check_thres = (feature_df['feature4'].value_counts() / feature_df.shape[0]).to_dict()[4]
-        res_drift = 1 if check_thres < 0.2 else 0
+        if self.type_==0:
+            res_drift = 1 if check_thres < 0.4 else 0
+        elif self.type_==1:
+            res_drift = 1 if check_thres < 0.3 else 0
         # logging.info(res_drift) 
         return res_drift
     
