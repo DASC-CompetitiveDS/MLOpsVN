@@ -1,8 +1,0 @@
-specific_handle: False
-PREDICT_CONSTANT: False
-DETECT_DRIFT: True
-LOG_TIME: True
-PROCESS_DATA: True
-USE_ASYNC: False
-CAPTURE_DATA: True
-CAPTURED_VERSION: test
