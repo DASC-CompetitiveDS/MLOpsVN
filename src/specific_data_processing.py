@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedShuffleSplit, StratifiedKFold
-from utils.utils import generate_missing_specific_columns
+from utils.utils import generate_missing_specific_columns, generate_index_missing_values
 
 def data_processing_phase2_prob2(data, phase="train"):
     drop_corr = ['feature32', 'feature36', 'feature37']
@@ -26,7 +26,18 @@ def data_processing_phase3(data, target_col, phase="train"):
     #feature 9
     if phase == "train":
         # data= data[~(data[target_col] == 'Normal')].reset_index(drop=True)
-        data= generate_missing_specific_columns(data, ['feature2', 'feature3', 'feature4'], [0.03, 0.02, 0.02])
+        data= generate_missing_specific_columns(data, ['feature2', 'feature3', 'feature4'], [0.02, 0.02, 0.02])
+        num_col = data.columns.tolist()
+        num_col.remove('feature2')
+        num_col.remove('feature3')
+        num_col.remove('feature4')
+        try:
+            num_col.remove(target_col)
+        except:
+            pass
+        for col in num_col:
+            missing_index = generate_index_missing_values(data[[target_col]], target_col, 0.009, [])
+            data.loc[missing_index, col] = np.nan
     # convert_1 = ["feature9", "feature19", "feature22", "feature10"]
     # for col in convert_1:
     #     data[col] = data[col].astype(int).astype(str)

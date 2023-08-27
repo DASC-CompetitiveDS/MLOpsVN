@@ -69,8 +69,8 @@ class Model:
             self.input_schema_sub = mlflow.models.Model.load(model_sub).get_input_schema().to_dict()
             self.sub_model = mlflow.sklearn.load_model(model_sub)
             self.type_=1
-            
-        self.predictor_logger_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1) 
+        if self.LOG_TIME:
+            self.predictor_logger_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1) 
         
         if self.CAPTURE_DATA:
             # if 'captured_version' not in self.predictor_config.keys():
@@ -90,6 +90,7 @@ class Model:
         # count_dup = count_dup[count_dup['count_unique'] > 1].shape[0]
         # res_drift = 1 if count_dup == 2 and feature_df['feature2'].loc[0] == 118 and feature_df['feature4'].loc[1] == 1 else 0
         check_thres = (feature_df['feature4'].value_counts() / feature_df.shape[0]).to_dict()[4]
+        # check_thres = feature_df[feature_df['feature4'] == 4].shape[0] / feature_df.shape[0]
         if self.type_==0:
             res_drift = 1 if check_thres < 0.4 else 0
         elif self.type_==1:
