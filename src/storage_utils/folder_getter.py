@@ -5,7 +5,7 @@ import pathlib
 from tqdm import tqdm
 
 
-def get_data(minio_server: str, src_path=None, dst_path='data', verbose=0, include_pattern=None, tag:tuple=None):
+def get_data(minio_server: str, src_path=None, dst_path='data', verbose=0, include_pattern=None, exclude_pattern=None, tag:tuple=None):
     minio_server = minio_server.replace('http://', '') if minio_server.startswith('http://') else minio_server
     
     client = Minio(
@@ -31,6 +31,10 @@ def get_data(minio_server: str, src_path=None, dst_path='data', verbose=0, inclu
     if not include_pattern is None:
         # print(f"Only download files contain {include_pattern} in path.")
         objects = [obj for obj in objects if include_pattern in obj.object_name]
+    
+    if not exclude_pattern is None:
+        # print(f"Only download files contain {include_pattern} in path.")
+        objects = [obj for obj in objects if exclude_pattern not in obj.object_name]
         
     if not tag is None:
         k, v = tag
@@ -63,6 +67,8 @@ if __name__ == "__main__":
     #                     help='nếu True, vị trí đầu tiên trong đường dẫn là bucket')
     parser.add_argument("--include_pattern", type=str, default=None,
                         help="chỉ download những folder có pattern này")
+    parser.add_argument("--exclude_pattern", type=str, default=None,
+                        help="không download những folder có pattern này")
     parser.add_argument("--verbose", type=int, default=0, 
                         help='0: hide error')
     
@@ -70,4 +76,4 @@ if __name__ == "__main__":
     
     # print(args)
     
-    get_data(args.minio_server, args.src_path, args.dst_path, args.verbose, args.include_pattern)
+    get_data(args.minio_server, args.src_path, args.dst_path, args.verbose, args.include_pattern, args.exclude_pattern)
