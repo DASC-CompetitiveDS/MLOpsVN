@@ -1,7 +1,7 @@
 SERVER = local
 
 download_data_ci:
-	bash bash/minio/get_data_ci.sh $(SERVER) phase-3 .
+	bash bash/minio/get_data_ci.sh $(SERVER) phase-3 captured_data . test
 
 # teardown
 teardown:
@@ -43,8 +43,8 @@ mlflow_down:
 
 # predictor
 predictor_up:
-	bash deployment/deploy.sh model1 data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_lr-0.5.yaml /phase-3/prob-1/predict 5001 data/predictor_config/phase-3/default_log.yaml $(SERVER)
-	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml /phase-3/prob-2/predict 5002 data/predictor_config/phase-3/default_log.yaml $(SERVER)
+	bash deployment/deploy.sh model1 data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_lr-0.5.yaml /phase-3/prob-1/predict 5001 data/predictor_config/phase-3/capture.yaml $(SERVER)
+	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml /phase-3/prob-2/predict 5002 data/predictor_config/phase-3/capture.yaml $(SERVER)
 
 predictor_down:
 	PORT=5001 docker-compose -f deployment/model_predictor/docker-compose.yml down
