@@ -32,12 +32,6 @@ jobs:
     - name: Run predictor_up
       run: make predictor_up SERVER=$SERVER
 
-    # - run: |
-    #     echo "Waiting for predictor up"
-    #     sleep 60
-    #     echo "Predictor up success!!!"
-
-
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
     - name: Run predictor_curl
