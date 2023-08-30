@@ -25,7 +25,7 @@ nginx_down:
 # wait 2s to kill exited container
 minio_up:
 	docker-compose -f deployment/minio/docker-compose.yml up -d
-	sleep 2
+	sleep 3
 	docker-compose -f deployment/minio/docker-compose.yml rm -f
 
 # minio_up:
@@ -43,8 +43,8 @@ mlflow_down:
 
 # predictor
 predictor_up:
-	bash deployment/deploy.sh model1 data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_lr-0.5.yaml /phase-3/prob-1/predict 5001 data/predictor_config/phase-3/default_log.yaml $(SERVER)
-	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml /phase-3/prob-2/predict 5002 data/predictor_config/phase-3/default_log.yaml $(SERVER)
+	bash deployment/deploy.sh model1 data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_lr-0.5.yaml /phase-3/prob-1/predict 5001 data/predictor_config/phase-3/default.yaml $(SERVER)
+	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml /phase-3/prob-2/predict 5002 data/predictor_config/phase-3/default.yaml $(SERVER)
 
 predictor_down:
 	PORT=5001 docker-compose -f deployment/model_predictor/docker-compose.yml down
