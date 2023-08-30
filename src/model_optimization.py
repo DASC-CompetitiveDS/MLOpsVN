@@ -65,6 +65,8 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
             param_grid[key] = trial.suggest_float(key, value[0][0], value[0][1])
         elif value[1] == 'int':
             param_grid[key] = trial.suggest_int(key, value[0][0], value[0][1])
+        elif value[1] == 'log':
+            param_grid[key] = trial.suggest_loguniform(key, value[0][0], value[0][1])
         elif value[1] == 'fix':
             param_grid[key] = value[0]
 
@@ -73,8 +75,12 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
         param_grid['class_weight'] = 'balanced'
         
     if type_model == 'xgb':
+        # for each in cat_features:
+        #     X_train[each] = X_train[each].astype('category')
+        #     X_valid[each] = X_valid[each].astype('category')
+
         reg = XGBRegressor(**param_grid, verbose=0) if task == 'reg' else \
-              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0)
+              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid)
         reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=0, early_stopping_rounds=300)
     elif type_model == 'lgbm':
         reg = LGBMRegressor(metric=None, **param_grid, verbose=0) if task == 'reg' else \
@@ -92,14 +98,17 @@ def objective(trial, train_data, valid_data, type_model, task, params_tuning, ca
         key_metrics = 'mean_squared_error'
         res = mean_squared_error(y_valid, reg.predict(X_valid), squared=False)
     else:
-        key_metrics = 'roc_auc_score' if unique_n == 2 else 'f1_score'
+        key_metrics = 'roc_auc_score' if unique_n == 2 else 'accuracy'
         res = roc_auc_score(y_valid, reg.predict_proba(X_valid)[:, 1]) if unique_n == 2 else \
               accuracy_score(y_valid, reg.predict(X_valid))
     # with mlflow.start_run(run_name=f"{model_name}_tuning_{trial.trial_id}"):
     mlflow.set_tag('type_model', type_model)
     mlflow.log_params(reg.get_params())
     mlflow.log_metrics({key_metrics: res})  
-    mlflow.log_metrics({'best_interation_':reg.best_iteration_})
+    try:
+        mlflow.log_metrics({'best_interation_':reg.best_iteration_})
+    except:
+        mlflow.log_metrics({'best_interation_':reg.get_booster().best_iteration})
     mlflow.end_run()
     
     return res
@@ -228,11 +237,14 @@ def model_training(train_data, valid_data, type_model, task, param_grid, cat_fea
     if is_class_weight is True:
         param_grid['class_weight'] = 'balanced'
     if type_model == 'xgb':
-        reg = XGBRegressor(**param_grid, verbose=0, n_estimators=n_estimators) if type_model == 'reg' else \
-              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, verbose=0, n_estimators=n_estimators)
+        # for each in cat_features:
+        #     X_train[each] = X_train[each].astype('category')
+        #     X_valid[each] = X_valid[each].astype('category')
+        reg = XGBRegressor(**param_grid, verbose=0, n_estimators=n_estimators) if task == 'reg' else \
+              XGBClassifier(objective= "binary:logistic" if unique_n == 2 else "multi:softprob", **param_grid, n_estimators=n_estimators)
         reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], verbose=0, early_stopping_rounds=early_stopping_rounds)
     elif type_model == 'lgbm':
-        reg = LGBMRegressor(metric=None, **param_grid, n_estimators=n_estimators, verbose=0) if type_model == 'reg' else \
+        reg = LGBMRegressor(metric=None, **param_grid, n_estimators=n_estimators, verbose=0) if task == 'reg' else \
               LGBMClassifier(metric=None, **param_grid, n_estimators=n_estimators, verbose=0)
         eval_metric = "binary_logloss" if unique_n == 2 else "multi_logloss"
         eval_metric = eval_metric if task == 'clf' else "rmse"
