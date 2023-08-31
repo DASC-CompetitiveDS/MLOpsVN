@@ -4,9 +4,24 @@ download_data_ci:
 	bash bash/minio/get_data_ci.sh $(SERVER) phase-3 captured_data . test
 
 # teardown
-teardown:
-	make predictor_down
+# teardown:
+# 	make predictor_down
+# 	make mlflow_down
+# 	make nginx_down
+# 	make minio_down
+# 	make monitoring_down
+
+down_all_platforms:
 	make mlflow_down
+	make nginx_down
+	make minio_down
+	make monitoring_down
+
+up_all_platforms:
+	make mlflow_up
+	make nginx_up
+	make minio_up
+	make monitoring_up
 
 monitoring_up:
 	docker-compose -f deployment/monitoring/monitoring-compose.yaml up -d
@@ -46,17 +61,14 @@ predictor_up:
 	bash deployment/deploy.sh model1 data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_specific_handle.yaml /phase-3/prob-1/predict 5001 data/predictor_config/phase-3/default.yaml $(SERVER)
 	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_specific_handle.yaml /phase-3/prob-2/predict 5002 data/predictor_config/phase-3/default.yaml $(SERVER)
 
-predictor_down:
-	PORT=5001 docker-compose -f deployment/model_predictor/docker-compose.yml down
-	PORT=5002 docker-compose -f deployment/model_predictor/docker-compose.yml down
+# predictor_down:
+# 	PORT=5001 docker-compose -f deployment/model_predictor/docker-compose.yml down
+# 	PORT=5002 docker-compose -f deployment/model_predictor/docker-compose.yml down
 
-predictor_restart:
-	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml stop
-	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml start
+# predictor_restart:
+# 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml stop
+# 	PORT=5041 docker-compose -f deployment/model_predictor/docker-compose.yml start
 
-predictor_curl:
-	curl -X POST http://13.212.32.97:5040/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
-	curl -X POST http://13.212.32.97:5040/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
 
 predictor_curl_8000:
 	curl -X POST http://localhost:8000/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
