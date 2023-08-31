@@ -73,6 +73,54 @@ def label_captured_data_cluster(prob_config: ProblemConfig, ratio_cluster: int):
     logging.info(f"Train set label ratio: {dict(train_y[prob_config.target_col].value_counts())}")
     logging.info(f"Test set label ratio (uncertained): {dict(approx_label_df[prob_config.target_col].value_counts())}")
 
+def label_captured_data_multiple_model(prob_config: ProblemConfig):
+    logging.info("Load captured data")
+    captured_x = pd.DataFrame()
+    for file_path in prob_config.captured_data_dir.glob("*.parquet"):
+        if "/123.parquet" in str(file_path):
+            continue
+        captured_data = pd.read_parquet(file_path)
+        captured_x = pd.concat([captured_x, captured_data])
+    mlflow.set_tracking_uri(AppConfig.MLFLOW_TRACKING_URI)
+    list_model_xgb, list_model_lgbm = [], []
+    for i in range(5):
+        model_uri_xgb = os.path.join(
+            "models:/", f"{prob_config.phase_id}_{prob_config.prob_id}_xgb_specific_handle_fold{i}", "1"
+        )
+        model_uri_lgbm = os.path.join(
+            "models:/", f"{prob_config.phase_id}_{prob_config.prob_id}_lgbm_specific_handle_fold{i}", "1"
+        )
+        input_schema = mlflow.models.Model.load(model_uri_xgb).get_input_schema().to_dict()
+        model_xgb = mlflow.sklearn.load_model(model_uri_xgb)
+        model_lgbm = mlflow.sklearn.load_model(model_uri_lgbm)
+        list_model_xgb.append(model_xgb)
+        list_model_lgbm.append(model_lgbm)
+    feature_columns = [each['name'] for each in input_schema]
+    captured_x = captured_x[feature_columns]
+    captured_x = captured_x.groupby(feature_columns).agg(count_unique = ('feature1', 'count')).reset_index()[feature_columns]
+    list_pred_xgb, list_pred_lgbm = [], []
+    for i in range(5):
+        pred_xgb = list_model_xgb[i].predict_proba(captured_x.values)
+        pred_lgbm = list_model_lgbm[i].predict_proba(captured_x.values)
+        list_pred_lgbm.append(pred_lgbm)
+        list_pred_xgb.append(pred_xgb)
+    
+    list_pred_xgb = np.mean(list_pred_xgb, axis=1)
+    list_pred_lgbm = np.mean(list_pred_lgbm, axis=1)
+    logging.info(list_pred_lgbm.shape)
+    final_pred = np.mean([list_pred_xgb, list_pred_lgbm], axis=-1)
+    logging.info(final_pred.shape, list_pred_xgb.shape)
+    classes_ = model_lgbm.classes_ 
+    final_pred = np.argmax(final_pred, axis=1)
+    final_pred = np.array([classes_[each] for each in final_pred])
+    approx_label_df = pd.DataFrame(final_pred, columns=[prob_config.target_col])
+
+    captured_x.to_parquet(prob_config.captured_x_path, index=False)
+    approx_label_df.to_parquet(prob_config.uncertain_y_path, index=False)
+    logging.info(f"Test set label ratio (uncertained): {dict(approx_label_df[prob_config.target_col].value_counts())}")
+
+
+
 
 def label_captured_data_model(prob_config: ProblemConfig, model_name: str):
     train_y = pd.read_parquet(prob_config.train_y_path)
@@ -139,6 +187,7 @@ if __name__ == "__main__":
     if args.type_label.lower() == 'cluster':
         label_captured_data_cluster(prob_config, args.ratio_cluster)
     elif args.type_label.lower() == 'model':
-        label_captured_data_model(prob_config, args.model_name)
+        # label_captured_data_model(prob_config, args.model_name)
+        label_captured_data_multiple_model(prob_config)
     else:
         logging.info("The available model type: [cluster, model]")

@@ -262,4 +262,9 @@ def model_training(train_data, valid_data, type_model, task, param_grid, cat_fea
     else:
         pred = reg.predict_proba(X_valid)[:, 1] if unique_n == 2 else reg.predict(X_valid)
         res = roc_auc_score(y_valid, pred) if unique_n == 2 else accuracy_score(y_valid, pred)
+    try:
+        mlflow.log_metrics({'best_interation_':reg.best_iteration_})
+    except:
+        mlflow.log_metrics({'best_interation_':reg.get_booster().best_iteration})
+    mlflow.end_run()
     return reg, res, pred
