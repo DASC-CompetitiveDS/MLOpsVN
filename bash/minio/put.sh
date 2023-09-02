@@ -1,1 +1,1 @@
-python3 src/storage_utils/putter.py --path 'data' --is_include_parent_path False
+python3 src/storage_utils/file_putter.py --path 'data'

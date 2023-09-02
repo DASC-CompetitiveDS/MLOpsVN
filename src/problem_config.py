@@ -116,7 +116,7 @@ def create_prob_config(phase_id: str, prob_id: str, run_test) -> ProblemConfig:
     
     prob_config.params_fix = {}
     prob_config.params_fix['xgb'] = {'max_depth': 10, 'subsample': 0.8986679798510896, 'colsample_bytree': 0.8359940906525908}  
-    prob_config.params_fix['lgbm'] = {'min_child_samples': 20, 'feature_fraction': 0.4, 'num_leaves': 74, 'bagging_fraction': 1, 'colsample_bytree': 1, 'min_child_weight': 0.001}
+    prob_config.params_fix['lgbm'] = {'learning_rate':0.2, 'max_depth': -1, 'num_leaves': 40, 'subsample': 1, 'colsample_bytree': 0.55, 'lambda_l2': 6.3}
     prob_config.params_fix['catboost'] = {'max_depth': 12, 'n_estimators': 500}
     prob_config.params_fix['rdf'] = {}
 

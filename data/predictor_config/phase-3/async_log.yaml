@@ -1,7 +1,7 @@
 specific_handle: False
 PREDICT_CONSTANT: False
 DETECT_DRIFT: True
-LOG_TIME: False
+LOG_TIME: True
 CAPTURE_DATA: False
 PROCESS_DATA: True
-USE_ASYNC: False
+USE_ASYNC: True

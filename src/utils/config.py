@@ -29,3 +29,6 @@ class AppConfig:
     # MLFLOW_TRACKING_URI = 'http://localhost:5000'
     MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
     MLFLOW_MODEL_PREFIX = "model"
+
+    MINIO_URI = os.environ.get("MINIO_URI")
+    MINIO_URI = "localhost:9009" if MINIO_URI is None else MINIO_URI
