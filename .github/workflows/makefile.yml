@@ -38,7 +38,7 @@ jobs:
       # Use the retry action
       uses: nick-fields/retry@v2
       with:
-        max_attempts: 1000
+        max_attempts: 10
         retry_on: error
         timeout_seconds: 60
         # You can specify the shell commands you want to retry here
