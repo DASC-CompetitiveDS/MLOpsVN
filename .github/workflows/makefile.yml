@@ -32,8 +32,8 @@ jobs:
     - name: Run predictor_up
       run: make predictor_up SERVER=$SERVER
 
-    # - name: Setup upterm session
-    #   uses: lhotari/action-upterm@v1
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
 
     - name: Run predictor_curl
       # Use the retry action
