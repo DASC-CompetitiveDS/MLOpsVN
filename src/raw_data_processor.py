@@ -12,6 +12,7 @@ from problem_config import ProblemConfig, ProblemConst, get_prob_config
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder  
 from specific_data_processing import ProcessData
+import drift_survey 
 
 from utils.config import AppConfig
 import mlflow
@@ -155,16 +156,13 @@ class RawDataProcessor:
         return model.predict_proba(training_data[[each['name'] for each in input_schema]])[:, 1]
 
     @staticmethod
-    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, external_data: bool, kfold: bool, add_features: bool):
-        logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
+    def get_processed_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, external_data: bool, add_features: bool):
         training_data = pd.read_parquet(prob_config.raw_data_path)
         target_col = prob_config.target_col  
         lbc = LabelEncoder().fit(training_data[target_col])
         dict_convert = {}
         dict_convert['l2i'] = {each: idx for idx, each in enumerate(lbc.classes_)}
         dict_convert['i2l'] = {idx: each for idx, each in enumerate(lbc.classes_)}
-        with open(prob_config.dict_convert_path, 'wb') as file_:
-            pickle.dump(dict_convert, file_)
         if external_data:
             external_data_train = pd.read_parquet(prob_config.external_data_path)
             training_data = pd.concat([training_data, external_data_train[training_data.columns.tolist()]]).reset_index(drop=True)
@@ -189,17 +187,23 @@ class RawDataProcessor:
             training_data, category_index = RawDataProcessor.build_category_features(
                 training_data, [col for col in training_data.columns.tolist() if training_data[col].dtype == 'O' and target_col != col]
             )
+        if add_features:
+            training_data['feature_pred'] = RawDataProcessor.get_model_predictions(prob_config, training_data.copy())
+        return training_data, category_index, dict_convert
+
+    @staticmethod
+    def process_raw_data(prob_config: ProblemConfig, remove_dup: str, order_reg: bool, specific_handle: bool, drift: bool, external_data: bool, kfold: bool, add_features: bool):
+        logging.info(f"start process_raw_data{' - drift data' if drift is True else ''}")
+        training_data, category_index, dict_convert = RawDataProcessor.get_processed_data(prob_config, remove_dup, order_reg, specific_handle, drift, external_data, add_features)
         category_index_path = prob_config.category_index_path if specific_handle is False else prob_config.category_index_path_specific_handling
         with open(category_index_path, "wb") as f:
             pickle.dump(category_index, f)
-        
-        if add_features:
-            training_data['feature_pred'] = RawDataProcessor.get_model_predictions(prob_config, training_data.copy())
-
+        with open(prob_config.dict_convert_path, 'wb') as file_:
+            pickle.dump(dict_convert, file_)
         if kfold is False:
-            RawDataProcessor.split_train_validation(training_data, prob_config, target_col, drift)
+            RawDataProcessor.split_train_validation(training_data, prob_config, prob_config.target_col, drift)
         else:
-            RawDataProcessor.split_stratified_kfold(training_data, prob_config, target_col)
+            RawDataProcessor.split_stratified_kfold(training_data, prob_config, prob_config.target_col)
        
         logging.info("finished process_raw_data")
 
