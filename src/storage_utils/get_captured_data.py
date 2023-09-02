@@ -1,4 +1,3 @@
-from folder_getter import get_data
 import argparse
 import os
 from glob import glob
@@ -16,6 +15,7 @@ def drop_exist(path):
     
 
 if __name__ == "__main__":
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--minio_server", type=str, default='localhost:9009')
     parser.add_argument("--src_path", type=str, default='data/captured_data/phase-3/prob-2')
@@ -29,6 +29,8 @@ if __name__ == "__main__":
                         help='0: hide error')
     
     args = parser.parse_args()
+    
+    from folder_getter import get_data
     
     if args.drop_exist:
         drop_exist(args.src_path)

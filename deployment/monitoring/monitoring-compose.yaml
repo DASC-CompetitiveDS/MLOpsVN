@@ -110,6 +110,7 @@ services:
     depends_on:
       - elasticsearch
     restart: always
+
 networks:
   elastic:
    driver: bridge

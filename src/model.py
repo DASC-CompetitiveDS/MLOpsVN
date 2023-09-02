@@ -61,13 +61,13 @@ class Model:
         ### vá tạm ###
         if self.config["prob_id"] == 'prob-1':
             self.type_=0
-            self.sub_model = None
+            # self.sub_model = None
         elif self.config["prob_id"] == 'prob-2':
-            model_sub = os.path.join(
-            "models:/", "phase-3_prob-1_lgbm_cv_specific_handle", "4"
-            )
-            self.input_schema_sub = mlflow.models.Model.load(model_sub).get_input_schema().to_dict()
-            self.sub_model = mlflow.sklearn.load_model(model_sub)
+            # model_sub = os.path.join(
+            # "models:/", "phase-3_prob-1_lgbm_cv_specific_handle", "4"
+            # )
+            # self.input_schema_sub = mlflow.models.Model.load(model_sub).get_input_schema().to_dict()
+            # self.sub_model = mlflow.sklearn.load_model(model_sub)
             self.type_=1
         if self.LOG_TIME:
             self.predictor_logger_executor = concurrent.futures.ThreadPoolExecutor(max_workers=1) 
@@ -178,10 +178,10 @@ class Model:
         get_features = [each['name'] for each in self.input_schema]        
         
         if self.DETECT_DRIFT:
-            try:
-                get_features.remove('feature_pred')
-            except:
-                pass
+            # try:
+            #     get_features.remove('feature_pred')
+            # except:
+            #     pass
             res_drift = self.detect_drift(feature_df[get_features])
         else:
             res_drift = 0
@@ -206,11 +206,11 @@ class Model:
                 # pred = feature_df[get_features]
                 # pred['feature_pred'] = RawDataProcessor.get_model_predictions(self.prob_config, pred)
                 # prediction = self.model.predict(pred)
-                get_features_sub = [each['name'] for each in self.input_schema_sub]  
-                pred_norm = self.sub_model.predict(feature_df[get_features_sub])
+                # get_features_sub = [each['name'] for each in self.input_schema_sub]  
+                # pred_norm = self.sub_model.predict(feature_df[get_features_sub])
                 prediction = self.model.predict(feature_df[get_features])
-                idx_norm = np.where(pred_norm == 0)[0]
-                prediction[idx_norm] = 'Normal'
+                # idx_norm = np.where(pred_norm == 0)[0]
+                # prediction[idx_norm] = 'Normal'
                 # logging.info(len(prediction))
 
         # logging.info(prediction)

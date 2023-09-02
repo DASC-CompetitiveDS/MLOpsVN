@@ -1,0 +1,38 @@
+version: "3.7"
+services:
+  drift_monitoring1:
+    # build:  
+    #   context: drift_monitoring/    
+    image: drift_monitoring:${IMAGE_TAG}  
+    # ports:
+    #   - "2905:2905"
+    volumes:
+      - ../../data/raw_data:/sample_solution/data/raw_data
+      - ../../data/train_data:/sample_solution/data/train_data
+      - ../../data/model_config:/sample_solution/data/model_config
+      - ../../data/captured_data:/sample_solution/data/captured_data
+      - ../../data/predictor_config:/sample_solution/data/predictor_config
+    environment:
+      MINIO_URI: http://host.docker.internal:9009
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: /bin/sh -c "python3 src/drift_monitor.py --phase_id ${PHASE_ID} --prob_id prob-1"
+
+  drift_monitoring2:
+    # build:  
+    #   context: drift_monitoring/    
+    image: drift_monitoring:${IMAGE_TAG}  
+    # ports:
+    #   - "2906:2906"
+    volumes:
+      - ../../data/raw_data:/sample_solution/data/raw_data
+      - ../../data/train_data:/sample_solution/data/train_data
+      - ../../data/model_config:/sample_solution/data/model_config
+      - ../../data/captured_data:/sample_solution/data/captured_data
+      - ../../data/predictor_config:/sample_solution/data/predictor_config
+
+    environment:
+      MINIO_URI: http://host.docker.internal:9009
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: /bin/sh -c "python3 src/drift_monitor.py --phase_id ${PHASE_ID} --prob_id prob-2"

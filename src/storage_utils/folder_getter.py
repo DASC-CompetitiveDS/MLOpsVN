@@ -5,7 +5,7 @@ import pathlib
 from tqdm import tqdm
 
 
-def get_data(minio_server: str, src_path=None, dst_path='.', verbose=0, include_pattern=None, exclude_pattern=None, tag:tuple=None):
+def get_data(minio_server: str, src_path=None, dst_path='.', verbose=0, include_pattern=None, exclude_pattern=None, tag:tuple=None, return_paths=False):
     minio_server = minio_server.replace('http://', '') if minio_server.startswith('http://') else minio_server
     print(minio_server)
     client = Minio(
@@ -51,7 +51,10 @@ def get_data(minio_server: str, src_path=None, dst_path='.', verbose=0, include_
                 
         print("Filtering by tag ...")
         objects = [obj for obj in tqdm(objects) if filter_by_tag(obj.object_name, k, v)]
-        
+    
+    if return_paths:
+        return [obj.object_name for obj in objects]
+    
     print("Downloading data ...")
     for i, obj in tqdm(enumerate(objects), total=len(objects)):
         try:
@@ -74,9 +77,10 @@ if __name__ == "__main__":
                         help="không download những folder có pattern này")
     parser.add_argument("--verbose", type=int, default=0, 
                         help='0: hide error')
+    parser.add_argument('--return_paths', type=lambda x: (str(x).lower() == "true"), default=False)
     
     args = parser.parse_args()
     
     # print(args)
     
-    get_data(args.minio_server, args.src_path, args.dst_path, args.verbose, args.include_pattern, args.exclude_pattern)
+    get_data(args.minio_server, args.src_path, args.dst_path, args.verbose, args.include_pattern, args.exclude_pattern, args.return_paths)
