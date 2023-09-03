@@ -25,9 +25,14 @@ jobs:
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
 
+
     - name: Download data
       run:
         make download_data_ci SERVER=$SERVER
+
+    - name: ci_training_pipeline
+      run: make training_ci
+
     
     - name: Run predictor_up
       run: make predictor_up SERVER=$SERVER

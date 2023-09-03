@@ -16,18 +16,26 @@ down_all_platforms:
 	make nginx_down
 	make minio_down
 	make monitoring_down
+	make airflow_up
 
 up_all_platforms:
 	make mlflow_up
 	make nginx_up
 	make minio_up
 	make monitoring_up
+	make airflow_down
 
 monitoring_up:
 	docker-compose -f deployment/monitoring/monitoring-compose.yaml up -d
 
 monitoring_down:
 	docker-compose -f deployment/monitoring/monitoring-compose.yaml down
+
+airflow_up:
+	sh deployment/airflow/deploy.sh
+
+airflow_down:
+	docker-compose -f deployment/airflow/docker-compose.yml down
 
 # nginx
 nginx_up:
@@ -61,6 +69,9 @@ predictor_up:
 	bash deployment/deploy.sh model1 data/model_config/phase-3/prob-1/phase-3_prob-1_lgbm_cv_specific_handle.yaml /phase-3/prob-1/predict 5001 data/predictor_config/phase-3/default.yaml $(SERVER)
 	bash deployment/deploy.sh model2 data/model_config/phase-3/prob-2/phase-3_prob-2_lgbm_cv_lr-0.2.yaml /phase-3/prob-2/predict 5002 data/predictor_config/phase-3/default.yaml $(SERVER)
 
+drift_monitoring_up:
+	bash deployment/deploy_drift_monitoring.sh phase-3
+
 predictor_curl:
 	curl -X POST http://localhost:5001/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
 	curl -X POST http://localhost:5002/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
@@ -77,3 +88,7 @@ predictor_curl:
 predictor_curl_8000:
 	curl -X POST http://localhost:8000/phase-3/prob-1/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-1/payload-1.json
 	curl -X POST http://localhost:8000/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
+
+training_ci:
+	sh bash/train_or_tune/tuning_prob-1_light.sh 60
+	sh bash/train_or_tune/tuning_prob-2_light.sh 60
