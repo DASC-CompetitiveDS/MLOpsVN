@@ -39,15 +39,19 @@ jobs:
 
     # - name: Setup upterm session
     #   uses: lhotari/action-upterm@v1
+
     - name: Run predictor_curl
       # Use the retry action
       uses: nick-fields/retry@v2
       with:
-        max_attempts: 1000
+        max_attempts: 10
         retry_on: error
         timeout_seconds: 60
         # You can specify the shell commands you want to retry here
-        command: make predictor_curl		
+        command: |
+          docker logs -f model1-model_predictor-1
+          docker logs -f model2-model_predictor-1
+          make predictor_curl		
 
     # - name: Run predictor_curl
     #   run: make predictor_curl

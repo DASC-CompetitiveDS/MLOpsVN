@@ -3,6 +3,7 @@ from minio import Minio
 import os
 import pathlib
 from tqdm import tqdm
+import sys
 
 
 def get_data(minio_server: str, src_path=None, dst_path='.', verbose=0, include_pattern=None, exclude_pattern=None, tag:tuple=None, return_paths=False):
@@ -83,4 +84,4 @@ if __name__ == "__main__":
     
     # print(args)
     
-    get_data(args.minio_server, args.src_path, args.dst_path, args.verbose, args.include_pattern, args.exclude_pattern, args.return_paths)
+    get_data(args.minio_server, args.src_path, args.dst_path, args.verbose, args.include_pattern, args.exclude_pattern)
