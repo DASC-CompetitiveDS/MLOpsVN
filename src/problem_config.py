@@ -1,6 +1,6 @@
 import json
 from utils.config import AppPath
-
+import os
 
 class ProblemConst:
     PHASE1 = "phase-1"
@@ -54,7 +54,7 @@ def load_feature_configs_dict(config_path: str) -> dict:
     return features_config
 
 
-def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
+def create_prob_config(phase_id: str, prob_id: str, run_test) -> ProblemConfig:
     prob_config = ProblemConfig()
     prob_config.prob_id = prob_id
     prob_config.phase_id = phase_id
@@ -63,36 +63,38 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
 
     # construct data paths for original data
     prob_config.raw_data_path = (
-        AppPath.RAW_DATA_DIR / f"{phase_id}" / f"{prob_id}" / "raw_train.parquet"
+         AppPath.RAW_DATA_DIR / f"{phase_id}" / f"{prob_id}" / "raw_train.parquet"
     )
+    prob_config.raw_data_path = f"{run_test}/{prob_config.raw_data_path}" if run_test is not None else prob_config.raw_data_path
     prob_config.external_data_path = (
         AppPath.EXTERNAL_DATA_DIR / f"{phase_id}" / f"{prob_id}" / "external_data.parquet"
     )
+    prob_config.external_data_path = f"{run_test}/{prob_config.external_data_path}" if run_test is not None else prob_config.external_data_path
     prob_config.feature_config_path = (
         AppPath.RAW_DATA_DIR / f"{phase_id}" / f"{prob_id}" / "features_config.json"
     )
+    prob_config.feature_config_path = f"{run_test}/{prob_config.feature_config_path}" if run_test is not None else prob_config.feature_config_path
     prob_config.train_data_path = AppPath.TRAIN_DATA_DIR / f"{phase_id}" / f"{prob_id}"
-    prob_config.train_data_path.mkdir(parents=True, exist_ok=True)
+    prob_config.train_data_path = (f"{run_test}/{prob_config.train_data_path}") if run_test is not None else prob_config.train_data_path
+    os.makedirs(prob_config.train_data_path, exist_ok=True)
+    # prob_config.train_data_path.mkdir(parents=True, exist_ok=True)
 
-    prob_config.category_index_path = (
-        prob_config.train_data_path / "category_index.pickle"
-    )
-    prob_config.category_index_path_specific_handling = (
-        prob_config.train_data_path / "category_index_specific_handling.pickle"
-    )
-    prob_config.dict_convert_path = prob_config.train_data_path / "dict_convert.pkl"
-    prob_config.train_x_path = prob_config.train_data_path / "train_x.parquet"
-    prob_config.train_y_path = prob_config.train_data_path / "train_y.parquet"
-    prob_config.train_x_drift_path = prob_config.train_data_path / "train_x_drift.parquet"
-    prob_config.train_y_drift_path = prob_config.train_data_path / "train_y_drift.parquet"
-    prob_config.test_x_path = prob_config.train_data_path / "test_x.parquet"
-    prob_config.test_y_path = prob_config.train_data_path / "test_y.parquet"
-    prob_config.test_x_drift_path = prob_config.train_data_path / "test_x_drift.parquet"
-    prob_config.test_y_drift_path = prob_config.train_data_path / "test_y_drift.parquet"
+    prob_config.category_index_path = f"{prob_config.train_data_path}/category_index.pickle"
+    prob_config.category_index_path_specific_handling = f"{prob_config.train_data_path}/category_index_specific_handling.pickle"
+    prob_config.dict_convert_path = f"{prob_config.train_data_path}/dict_convert.pkl"
+    prob_config.train_x_path = f"{prob_config.train_data_path}/train_x.parquet"
+    prob_config.train_y_path = f"{prob_config.train_data_path}/train_y.parquet"
+    prob_config.train_x_drift_path = f"{prob_config.train_data_path}/train_x_drift.parquet"
+    prob_config.train_y_drift_path = f"{prob_config.train_data_path}/train_y_drift.parquet"
+    prob_config.test_x_path = f"{prob_config.train_data_path}/test_x.parquet"
+    prob_config.test_y_path = f"{prob_config.train_data_path}/test_y.parquet"
+    prob_config.test_x_drift_path = f"{prob_config.train_data_path}/test_x_drift.parquet"
+    prob_config.test_y_drift_path = f"{prob_config.train_data_path}/test_y_drift.parquet"
 
     prob_config.add_features_model = (
         AppPath.MODEL_CONFIG_DIR / f"{phase_id}" / f"{prob_id}" / "add_features_model.yaml"
     )
+    prob_config.add_features_model = f"{run_test}/{prob_config.add_features_model}" if run_test is not None else prob_config.add_features_model
     # get properties of ml-problem
     prob_config.feature_configs = load_feature_configs_dict(prob_config.feature_config_path)
     prob_config.target_col = prob_config.feature_configs.get("target_column")
@@ -123,25 +125,24 @@ def create_prob_config(phase_id: str, prob_id: str) -> ProblemConfig:
     prob_config.captured_data_dir = (
         AppPath.CAPTURED_DATA_DIR / f"{phase_id}" / f"{prob_id}"
     )
-    prob_config.captured_data_dir.mkdir(parents=True, exist_ok=True)
-    prob_config.processed_captured_data_dir = (
-        prob_config.captured_data_dir / "processed"
-    )
-    prob_config.processed_captured_data_dir.mkdir(parents=True, exist_ok=True)
-    prob_config.captured_x_path = (
-        prob_config.processed_captured_data_dir / "captured_x.parquet"
-    )
-    prob_config.uncertain_y_path = (
-        prob_config.processed_captured_data_dir / "uncertain_y.parquet"
-    )
+    prob_config.captured_data_dir = f"{run_test}/{prob_config.captured_data_dir}" if run_test is not None else prob_config.captured_data_dir
+    os.makedirs(prob_config.captured_data_dir, exist_ok=True)
+    # prob_config.captured_data_dir.mkdir(parents=True, exist_ok=True)
+    prob_config.processed_captured_data_dir = f"{prob_config.captured_data_dir}/processed"
+    os.makedirs(prob_config.processed_captured_data_dir, exist_ok=True)
+    # prob_config.processed_captured_data_dir.mkdir(parents=True, exist_ok=True)
+    prob_config.captured_x_path = f"{prob_config.processed_captured_data_dir}/captured_x.parquet"
+    prob_config.uncertain_y_path = f"{prob_config.processed_captured_data_dir}/uncertain_y.parquet"
     
     # model config path
     prob_config.model_config_path = AppPath.MODEL_CONFIG_DIR / f"{phase_id}" / f"{prob_id}" 
-    prob_config.model_config_path.mkdir(parents=True, exist_ok=True)
+    prob_config.model_config_path = f"{run_test}/{prob_config.model_config_path}" if run_test is not None else prob_config.model_config_path
+    os.makedirs(prob_config.model_config_path, exist_ok=True)
+    # prob_config.model_config_path.mkdir(parents=True, exist_ok=True)
 
     return prob_config
 
 
-def get_prob_config(phase_id: str, prob_id: str):
-    prob_config = create_prob_config(phase_id, prob_id)
+def get_prob_config(phase_id: str, prob_id: str, run_test=None):
+    prob_config = create_prob_config(phase_id, prob_id, run_test)
     return prob_config
