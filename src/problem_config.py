@@ -54,7 +54,7 @@ def load_feature_configs_dict(config_path: str) -> dict:
     return features_config
 
 
-def create_prob_config(phase_id: str, prob_id: str, run_test) -> ProblemConfig:
+def create_prob_config(phase_id: str, prob_id: str, run_test=None) -> ProblemConfig:
     prob_config = ProblemConfig()
     prob_config.prob_id = prob_id
     prob_config.phase_id = phase_id

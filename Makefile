@@ -90,5 +90,5 @@ predictor_curl_8000:
 	curl -X POST http://localhost:8000/phase-3/prob-2/predict -H "Content-Type: application/json" -d @data/curl/phase-3/prob-2/payload-1.json
 
 training_ci:
-	sh bash/train_or_tune/tuning_prob-1_light.sh 60
-	sh bash/train_or_tune/tuning_prob-2_light.sh 60
+	sh bash/train_or_tune/tuning_prob-1_light.sh 30 test_ci
+	sh bash/train_or_tune/tuning_prob-2_light.sh 30 test_ci

@@ -1,4 +1,10 @@
 TIME_TUNING="${1:-1200}"
+OPTFLAGNAME=""
+
+if [ ! -z "$2" ]; then
+   OPTFLAGNAME="--model_name $2"
+fi
+
 
 python3 src/model_trainer.py \
         --phase-id phase-3 \
@@ -9,4 +15,4 @@ python3 src/model_trainer.py \
         --specific_handle True \
         --early_stopping_rounds 50 \
         --learning_rate 0.2 \
-        --model_name test_ci
+        $OPTFLAGNAME
