@@ -49,8 +49,8 @@ jobs:
         timeout_seconds: 60
         # You can specify the shell commands you want to retry here
         command: |
-          docker logs -f model1_model_predictor_1
-          docker logs -f model2_model_predictor_1
+          docker logs model1_model_predictor_1 --since 10s
+          docker logs model2_model_predictor_1 --since 10s
           make predictor_curl		
 
     # - name: Run predictor_curl
