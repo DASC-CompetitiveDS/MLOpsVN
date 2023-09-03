@@ -117,7 +117,7 @@ class ModelTrainer:
         if args.log_confusion_matrix:
             mlflow.log_figure(get_confusion_matrix(test_y, predictions), 
                             "confusion_matrix.png")
-        if type_model is 'lgbm':
+        if type_model == 'lgbm':
             for importance_type in ['split', 'gain']:
                 fig, importance_dict = get_feature_importance(model, importance_type=importance_type)
                 mlflow.log_figure(fig, f'feature_importances_{importance_type}.png')
