@@ -12,7 +12,7 @@ from problem_config import ProblemConfig, ProblemConst, get_prob_config
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder  
 from specific_data_processing import ProcessData
-import drift_survey 
+# import drift_survey 
 
 from utils.config import AppConfig
 import mlflow
