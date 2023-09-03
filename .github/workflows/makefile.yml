@@ -50,7 +50,7 @@ jobs:
         # You can specify the shell commands you want to retry here
         command: |
           docker logs -f model1_model_predictor_1
-          docker logs -f model2-model_predictor_1
+          docker logs -f model2_model_predictor_1
           make predictor_curl		
 
     # - name: Run predictor_curl
