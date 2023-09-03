@@ -43,7 +43,7 @@ default_args = {
 }
 
 dag = DAG(
-    'ci_pipeline',
+    'ct_pipeline',
     default_args=default_args,
     description='Continuous Training Pipeline',
     schedule_interval=timedelta(days=1),
