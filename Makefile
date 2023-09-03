@@ -16,14 +16,14 @@ down_all_platforms:
 	make nginx_down
 	make minio_down
 	make monitoring_down
-	make airflow_up
+	make airflow_down
 
 up_all_platforms:
 	make mlflow_up
 	make nginx_up
 	make minio_up
 	make monitoring_up
-	make airflow_down
+	make airflow_up
 
 monitoring_up:
 	docker-compose -f deployment/monitoring/monitoring-compose.yaml up -d

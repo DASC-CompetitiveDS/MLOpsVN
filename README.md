@@ -11,9 +11,7 @@ This repository is the Momentum solution for MLOps Marathon 2023.
     # Install docker version 20.10.17
     # Install docker-compose version v2.6.1
     pip install -r requirements.txt
-    make mlflow_up
-    make nginx_up
-    make minio_up
+    make up_all_platforms
     ```
 
 2.  Train model
