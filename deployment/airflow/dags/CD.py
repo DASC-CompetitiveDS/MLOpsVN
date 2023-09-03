@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.operators.docker_operator import DockerOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.dates import days_ago
@@ -55,17 +56,24 @@ with dag:
                                            'src_path':'data/predictor_config'}                        
     )
 
-    kill_old_predictor = BashOperator(
-        task_id='kill_old_predictor_dag',
-        bash_command="docker kill model1-model_predictor-1 | docker kill model2-model_predictor-1",
-    )
+    # kill_old_predictor = BashOperator(
+    #     task_id='kill_old_predictor_dag',
+    #     bash_command="docker kill model1-model_predictor-1 | docker kill model2-model_predictor-1",
+    # )
 
-    build_new_predictor = BashOperator(
+    build_new_predictor = DockerOperator(
         task_id='build_new_predictor_dag',
-        bash_command="$PROJECT_PATH/model_predictor/deploy.sh model1 data/model_config/phase-3/prob-1/{{ ti.xcom_pull(task_ids='baseline_model') }} /phase-3/prob-1/predict 5001 data/predictor_config/default_log.yaml default",
-        do_xcom_push=True
+        # bash_command="$PROJECT_PATH/model_predictor/deploy.sh model1 data/model_config/phase-3/prob-1/{{ ti.xcom_pull(task_ids='baseline_model') }} /phase-3/prob-1/predict 5001 data/predictor_config/default_log.yaml default",
+        # do_xcom_push=True
+        image='model1',
+        container_name='model1-model_predictor-1',
+        api_version='auto',
+        auto_remove=True,
+        entrypoint="/bin/sh -c \"python3 utils/show_parquet.py\"",
+        docker_url="unix://var/run/docker.sock",
+        network_mode="bridge"
     )
 
-    get_config >> kill_old_predictor >> build_new_predictor
+    get_config >> build_new_predictor
 
     

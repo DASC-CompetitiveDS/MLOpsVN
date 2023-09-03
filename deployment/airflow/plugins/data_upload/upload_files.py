@@ -15,9 +15,9 @@ client = Minio(
 def upload_files(minio_path, client, local_path_up, bucket_name):
     found = client.bucket_exists(bucket_name)
     if not found:
-        print("Eo co")
+        print("Không có dữ liệu")
     else:
-        print("Co r")
+        print("Có dữ liệu")
     curr_path = os.getcwd()
     local_path = os.path.join(curr_path, local_path_up)
     print(local_path)

@@ -5,7 +5,7 @@ from airflow.operators.python_operator import PythonOperator, BranchPythonOperat
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.dates import days_ago
 from airflow.utils.timezone import datetime
-from data_upload import upload_files
+# from data_upload import upload_files
 from data_processing import label_captured_data
 from data_processing import raw_data_processor
 from model_train import model_trainer
@@ -14,12 +14,12 @@ from minio import Minio
 from minio.error import S3Error
 import problem_config
 
-client = Minio(
-        "127.0.0.1:9009",
-        access_key="gGL0SPj6CNLosSNR7nfM",
-        secret_key="qxViOu0AW2z6kaa7VtrOmXENOMOlQIwMoJPfTK2D",
-        secure=False
-    )
+# client = Minio(
+#         "127.0.0.1:9009",
+#         access_key="gGL0SPj6CNLosSNR7nfM",
+#         secret_key="qxViOu0AW2z6kaa7VtrOmXENOMOlQIwMoJPfTK2D",
+#         secure=False
+#     )
 
 phase_id = 'phase-3'
 prob_id = 'prob-1'
